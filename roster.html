@@ -35,17 +35,23 @@
 </footer>
 <script src="js/main.js"></script>
 <script>
-  const rosterGrid = document.getElementById('roster-grid');
-  const roster = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER);
-  rosterGrid.innerHTML = roster.map(p => `
-    <article class="card player-card reveal">
-      <div class="player-avatar">${p.initials}</div>
-      <h3>${p.name}</h3>
-      <div class="player-role">${p.role}</div>
-      <p class="player-meta">${p.meta}</p>
-    </article>
-  `).join('') || '<p style="color:var(--text-dim);">No roster members yet.</p>';
-  initReveal();
+  (async () => {
+    const rosterGrid = document.getElementById('roster-grid');
+    try {
+      const roster = await apiList('roster');
+      rosterGrid.innerHTML = roster.map(p => `
+        <article class="card player-card reveal">
+          <div class="player-avatar">${p.initials}</div>
+          <h3>${p.name}</h3>
+          <div class="player-role">${p.role}</div>
+          <p class="player-meta">${p.meta}</p>
+        </article>
+      `).join('') || '<p style="color:var(--text-dim);">No roster members yet.</p>';
+    } catch (e) {
+      rosterGrid.innerHTML = '<p style="color:var(--text-dim);">Could not load the roster right now.</p>';
+    }
+    initReveal();
+  })();
 </script>
 </body>
 </html>
