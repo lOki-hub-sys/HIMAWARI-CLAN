@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-page="join">
-
 <nav class="site-nav">
   <a href="index.html" class="brand"><span class="emblem"></span> Himawari</a>
   <div class="nav-links">
@@ -21,7 +20,6 @@
   </div>
   <button class="nav-toggle" aria-label="Toggle menu">☰</button>
 </nav>
-
 <header class="hero" style="padding-bottom:40px;">
   <div class="container">
     <span class="eyebrow">Recruitment</span>
@@ -29,7 +27,6 @@
     <p class="lede" style="margin-top:14px;">We're looking for a flex substitute ahead of the fall season. Academy tryouts run monthly.</p>
   </div>
 </header>
-
 <section class="container">
   <div class="grid grid-2">
     <div class="card reveal">
@@ -41,7 +38,6 @@
         <li>18+ preferred, exceptions considered case-by-case</li>
       </ul>
     </div>
-
     <form class="card reveal" id="apply-form">
       <h3 style="font-size:1.1rem;margin-bottom:16px;">Application</h3>
       <div class="field">
@@ -65,18 +61,26 @@
     </form>
   </div>
 </section>
-
 <footer class="site-footer">
   <span>© 2026 Himawari Clan</span>
   <span>Managed via the clan admin panel</span>
 </footer>
-
 <script src="js/main.js"></script>
 <script>
   document.getElementById('apply-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    const applicants = himawariGet(HIMAWARI_KEYS.applicants, []);
+    applicants.unshift({
+      id: 'app' + Date.now(),
+      ign: document.getElementById('ign').value,
+      rank: document.getElementById('rank').value,
+      discord: document.getElementById('discord').value,
+      notes: document.getElementById('notes').value,
+      date: new Date().toISOString().slice(0, 10),
+    });
+    himawariSet(HIMAWARI_KEYS.applicants, applicants);
     document.getElementById('apply-note').textContent =
-      'Thanks — this demo form doesn\u2019t send anywhere yet. Wire it to Discord webhook / email / the admin backend when you\u2019re ready to go live.';
+      'Application received — the clan admins will review it and reach out on Discord.';
     e.target.reset();
   });
 </script>
