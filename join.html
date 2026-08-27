@@ -67,21 +67,24 @@
 </footer>
 <script src="js/main.js"></script>
 <script>
-  document.getElementById('apply-form').addEventListener('submit', (e) => {
+  document.getElementById('apply-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const applicants = himawariGet(HIMAWARI_KEYS.applicants, []);
-    applicants.unshift({
+    const note = document.getElementById('apply-note');
+    const record = {
       id: 'app' + Date.now(),
       ign: document.getElementById('ign').value,
       rank: document.getElementById('rank').value,
       discord: document.getElementById('discord').value,
       notes: document.getElementById('notes').value,
       date: new Date().toISOString().slice(0, 10),
-    });
-    himawariSet(HIMAWARI_KEYS.applicants, applicants);
-    document.getElementById('apply-note').textContent =
-      'Application received — the clan admins will review it and reach out on Discord.';
-    e.target.reset();
+    };
+    try {
+      await apiSave('applicants', record);
+      note.textContent = 'Application received — the clan admins will review it and reach out on Discord.';
+      e.target.reset();
+    } catch (err) {
+      note.textContent = 'Something went wrong submitting your application — please try again in a moment.';
+    }
   });
 </script>
 </body>
