@@ -1,9 +1,3 @@
-/* ============================================================
-   Himawari — shared site behavior
-   Data layer: localStorage (simple single-admin site, no server
-   needed — see SKILL.md admin panel section for the reasoning).
-   ============================================================ */
-
 const HIMAWARI_KEYS = {
   announcements: 'himawari_announcements',
   tournaments: 'himawari_tournaments',
@@ -24,7 +18,7 @@ const SEED_TOURNAMENTS = [
 function himawariGet(key, seed) {
   const raw = localStorage.getItem(key);
   if (raw) {
-    try { return JSON.parse(raw); } catch (e) { /* fall through to seed */ }
+    try { return JSON.parse(raw); } catch (e) {}
   }
   if (seed) localStorage.setItem(key, JSON.stringify(seed));
   return seed || [];
@@ -34,7 +28,6 @@ function himawariSet(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-/* ---------- Nav ---------- */
 function initNav() {
   const toggle = document.querySelector('.nav-toggle');
   const links = document.querySelector('.nav-links');
@@ -47,7 +40,6 @@ function initNav() {
   });
 }
 
-/* ---------- Sunflower emblem builder ---------- */
 function buildEmblem(el, petalCount = 12) {
   el.innerHTML = '';
   for (let i = 0; i < petalCount; i++) {
@@ -66,11 +58,16 @@ function buildEmblem(el, petalCount = 12) {
   }
 }
 
-/* ---------- Scroll reveal ---------- */
 function initReveal() {
-  const groups = new Map(); // parent -> count, for stagger index
+  const groups = new Map();
   const dirs = ['up', 'left', 'right', 'scale'];
   const targets = document.querySelectorAll('.reveal');
+
+  if (!('IntersectionObserver' in window) || targets.length === 0) {
+    // No animation support (or nothing to animate) — leave elements in
+    // their default, fully-visible state. Nothing to do.
+    return;
+  }
 
   targets.forEach((t) => {
     const parent = t.parentElement;
@@ -78,12 +75,11 @@ function initReveal() {
     groups.set(parent, idx + 1);
     if (!t.dataset.dir) t.dataset.dir = dirs[idx % dirs.length];
     t.style.transitionDelay = `${Math.min(idx * 70, 420)}ms`;
+    // Only now, with everything configured, opt this element into the
+    // hidden/animated starting state.
+    t.classList.add('reveal-armed');
   });
 
-  if (!('IntersectionObserver' in window) || targets.length === 0) {
-    targets.forEach((t) => t.classList.add('is-visible'));
-    return;
-  }
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -96,15 +92,20 @@ function initReveal() {
     { threshold: 0.15 }
   );
   targets.forEach((t) => io.observe(t));
+
+  // Safety net: if an armed element never registers as intersecting
+  // (edge cases with certain layouts, extensions, or nested scroll
+  // containers), don't let it stay invisible forever.
+  setTimeout(() => {
+    targets.forEach((t) => t.classList.add('is-visible'));
+  }, 1200);
 }
 
-/* ---------- Hero: pollen particles + parallax ---------- */
 function initHeroMotion() {
   const hero = document.querySelector('.hero');
   if (!hero) return;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // second ambient glow layer
   const glow2 = document.createElement('div');
   glow2.className = 'hero-glow-2';
   hero.appendChild(glow2);
