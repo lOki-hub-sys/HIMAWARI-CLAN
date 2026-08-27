@@ -651,6 +651,27 @@ button:focus-visible, a:focus-visible, .btn:focus-visible {
 .admin-panel { display: none; animation: rise-in 420ms var(--ease-out) forwards; }
 .admin-panel.active { display: block; }
 
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--ember);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  box-shadow: 0 0 8px 0 rgba(255, 68, 51, 0.6);
+  animation: badge-pulse 1.8s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 8px 0 rgba(255, 68, 51, 0.6); }
+  50% { box-shadow: 0 0 14px 3px rgba(255, 68, 51, 0.8); }
+}
+
 .list-row {
   display: flex;
   justify-content: space-between;
