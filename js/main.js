@@ -68,7 +68,18 @@ function buildEmblem(el, petalCount = 12) {
 
 /* ---------- Scroll reveal ---------- */
 function initReveal() {
+  const groups = new Map(); // parent -> count, for stagger index
+  const dirs = ['up', 'left', 'right', 'scale'];
   const targets = document.querySelectorAll('.reveal');
+
+  targets.forEach((t) => {
+    const parent = t.parentElement;
+    const idx = groups.get(parent) || 0;
+    groups.set(parent, idx + 1);
+    if (!t.dataset.dir) t.dataset.dir = dirs[idx % dirs.length];
+    t.style.transitionDelay = `${Math.min(idx * 70, 420)}ms`;
+  });
+
   if (!('IntersectionObserver' in window) || targets.length === 0) {
     targets.forEach((t) => t.classList.add('is-visible'));
     return;
@@ -87,8 +98,53 @@ function initReveal() {
   targets.forEach((t) => io.observe(t));
 }
 
+/* ---------- Hero: pollen particles + parallax ---------- */
+function initHeroMotion() {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // second ambient glow layer
+  const glow2 = document.createElement('div');
+  glow2.className = 'hero-glow-2';
+  hero.appendChild(glow2);
+
+  if (!reduceMotion) {
+    const field = document.createElement('div');
+    field.className = 'pollen-field';
+    field.setAttribute('aria-hidden', 'true');
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('span');
+      p.className = 'pollen';
+      const left = Math.random() * 100;
+      const duration = 7 + Math.random() * 6;
+      const delay = Math.random() * 8;
+      const driftX = (Math.random() * 80 - 40).toFixed(0) + 'px';
+      p.style.left = `${left}%`;
+      p.style.setProperty('--drift-x', driftX);
+      p.style.animationDuration = `${duration}s`;
+      p.style.animationDelay = `${delay}s`;
+      field.appendChild(p);
+    }
+    hero.appendChild(field);
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        hero.style.setProperty('--parallax', `${y * 0.25}px`);
+        ticking = false;
+      });
+    }, { passive: true });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
   document.querySelectorAll('.emblem, .emblem-hero').forEach((el) => buildEmblem(el));
   initReveal();
+  initHeroMotion();
 });
