@@ -1,13 +1,10 @@
 /* ============================================================
    Himawari admin panel
-   NOTE ON AUTH: this is a client-only demo so there's no server
-   to hold real secrets. It hashes the password (SHA-256) rather
-   than comparing plaintext, and issues an expiring session token
-   in sessionStorage instead of a permanent flag — closer in spirit
-   to "real" auth than a single shared password, but still not a
-   substitute for server-verified per-admin accounts. Swap in a
-   real backend (see SKILL.md) before this guards anything that
-   actually matters.
+   NOTE ON AUTH: this is still a client-only login check (see the
+   note below) — swap in real per-admin accounts before this
+   guards anything that actually matters. But roster, announcements,
+   tournaments, and applicants now read/write through /api/* to the
+   shared D1 database, so everyone sees the same data.
    ============================================================ */
 
 const ADMIN_CREDS = {
@@ -81,8 +78,8 @@ document.querySelectorAll('.admin-tab').forEach((tab) => {
 });
 
 /* ---------- Announcements CRUD ---------- */
-function renderAnnouncements() {
-  const items = himawariGet(HIMAWARI_KEYS.announcements, SEED_ANNOUNCEMENTS);
+async function renderAnnouncements() {
+  const items = await apiList('announcements');
   const list = document.getElementById('announce-list');
   list.innerHTML = items.map(a => `
     <div class="list-row">
@@ -98,12 +95,11 @@ function renderAnnouncements() {
     </div>
   `).join('') || '<p style="color:var(--text-dim);">No announcements yet.</p>';
 
-  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editAnnouncement(btn.dataset.edit)));
+  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editAnnouncement(btn.dataset.edit, items)));
   list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteAnnouncement(btn.dataset.delete)));
 }
 
-function editAnnouncement(id) {
-  const items = himawariGet(HIMAWARI_KEYS.announcements, SEED_ANNOUNCEMENTS);
+function editAnnouncement(id, items) {
   const a = items.find(i => i.id === id);
   if (!a) return;
   document.getElementById('announce-id').value = a.id;
@@ -113,25 +109,21 @@ function editAnnouncement(id) {
   document.getElementById('announce-cancel').style.display = 'inline-flex';
 }
 
-function deleteAnnouncement(id) {
-  const items = himawariGet(HIMAWARI_KEYS.announcements, SEED_ANNOUNCEMENTS).filter(i => i.id !== id);
-  himawariSet(HIMAWARI_KEYS.announcements, items);
+async function deleteAnnouncement(id) {
+  await apiDelete('announcements', id);
   renderAnnouncements();
 }
 
-document.getElementById('announce-form').addEventListener('submit', (e) => {
+document.getElementById('announce-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('announce-id').value;
-  const items = himawariGet(HIMAWARI_KEYS.announcements, SEED_ANNOUNCEMENTS);
   const record = {
     id: id || 'a' + Date.now(),
     title: document.getElementById('announce-title').value,
     body: document.getElementById('announce-body').value,
     date: document.getElementById('announce-date').value,
   };
-  const idx = items.findIndex(i => i.id === id);
-  if (idx > -1) items[idx] = record; else items.unshift(record);
-  himawariSet(HIMAWARI_KEYS.announcements, items);
+  await apiSave('announcements', record);
   e.target.reset();
   document.getElementById('announce-id').value = '';
   document.getElementById('announce-cancel').style.display = 'none';
@@ -145,8 +137,8 @@ document.getElementById('announce-cancel').addEventListener('click', () => {
 });
 
 /* ---------- Roster CRUD ---------- */
-function renderRoster() {
-  const items = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER);
+async function renderRoster() {
+  const items = await apiList('roster');
   const list = document.getElementById('roster-list');
   list.innerHTML = items.map(p => `
     <div class="list-row">
@@ -165,12 +157,11 @@ function renderRoster() {
     </div>
   `).join('') || '<p style="color:var(--text-dim);">No roster members yet.</p>';
 
-  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editRoster(btn.dataset.edit)));
+  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editRoster(btn.dataset.edit, items)));
   list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteRoster(btn.dataset.delete)));
 }
 
-function editRoster(id) {
-  const items = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER);
+function editRoster(id, items) {
   const p = items.find(i => i.id === id);
   if (!p) return;
   document.getElementById('roster-id').value = p.id;
@@ -181,17 +172,15 @@ function editRoster(id) {
   document.getElementById('roster-cancel').style.display = 'inline-flex';
 }
 
-function deleteRoster(id) {
+async function deleteRoster(id) {
   if (!confirm('Remove this member from the roster?')) return;
-  const items = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER).filter(i => i.id !== id);
-  himawariSet(HIMAWARI_KEYS.roster, items);
+  await apiDelete('roster', id);
   renderRoster();
 }
 
-document.getElementById('roster-form').addEventListener('submit', (e) => {
+document.getElementById('roster-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('roster-id').value;
-  const items = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER);
   const record = {
     id: id || 'p' + Date.now(),
     initials: document.getElementById('roster-initials').value.toUpperCase(),
@@ -199,9 +188,7 @@ document.getElementById('roster-form').addEventListener('submit', (e) => {
     role: document.getElementById('roster-role').value,
     meta: document.getElementById('roster-meta').value,
   };
-  const idx = items.findIndex(i => i.id === id);
-  if (idx > -1) items[idx] = record; else items.push(record);
-  himawariSet(HIMAWARI_KEYS.roster, items);
+  await apiSave('roster', record);
   e.target.reset();
   document.getElementById('roster-id').value = '';
   document.getElementById('roster-cancel').style.display = 'none';
@@ -215,8 +202,8 @@ document.getElementById('roster-cancel').addEventListener('click', () => {
 });
 
 /* ---------- Applicants (admin-only inbox, no public listing) ---------- */
-function renderApplicants() {
-  const items = himawariGet(HIMAWARI_KEYS.applicants, []);
+async function renderApplicants() {
+  const items = await apiList('applicants');
   const list = document.getElementById('applicant-list');
   const badge = document.getElementById('applicant-count-badge');
   badge.textContent = items.length ? items.length : '';
@@ -239,17 +226,15 @@ function renderApplicants() {
   `).join('') || '<p style="color:var(--text-dim);">No applications yet.</p>';
 
   list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteApplicant(btn.dataset.delete)));
-  list.querySelectorAll('[data-promote]').forEach(btn => btn.addEventListener('click', () => promoteApplicant(btn.dataset.promote)));
+  list.querySelectorAll('[data-promote]').forEach(btn => btn.addEventListener('click', () => promoteApplicant(btn.dataset.promote, items)));
 }
 
-function deleteApplicant(id) {
-  const items = himawariGet(HIMAWARI_KEYS.applicants, []).filter(i => i.id !== id);
-  himawariSet(HIMAWARI_KEYS.applicants, items);
+async function deleteApplicant(id) {
+  await apiDelete('applicants', id);
   renderApplicants();
 }
 
-function promoteApplicant(id) {
-  const items = himawariGet(HIMAWARI_KEYS.applicants, []);
+function promoteApplicant(id, items) {
   const a = items.find(i => i.id === id);
   if (!a) return;
   // Pre-fill the roster form so the admin reviews/adjusts details before saving.
@@ -264,8 +249,8 @@ function promoteApplicant(id) {
 }
 
 /* ---------- Tournaments CRUD ---------- */
-function renderTournaments() {
-  const items = himawariGet(HIMAWARI_KEYS.tournaments, SEED_TOURNAMENTS);
+async function renderTournaments() {
+  const items = await apiList('tournaments');
   const list = document.getElementById('tourney-list');
   list.innerHTML = items.map(t => `
     <div class="list-row">
@@ -281,12 +266,11 @@ function renderTournaments() {
     </div>
   `).join('') || '<p style="color:var(--text-dim);">No tournaments yet.</p>';
 
-  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editTourney(btn.dataset.edit)));
+  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editTourney(btn.dataset.edit, items)));
   list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteTourney(btn.dataset.delete)));
 }
 
-function editTourney(id) {
-  const items = himawariGet(HIMAWARI_KEYS.tournaments, SEED_TOURNAMENTS);
+function editTourney(id, items) {
   const t = items.find(i => i.id === id);
   if (!t) return;
   document.getElementById('tourney-id').value = t.id;
@@ -297,16 +281,14 @@ function editTourney(id) {
   document.getElementById('tourney-cancel').style.display = 'inline-flex';
 }
 
-function deleteTourney(id) {
-  const items = himawariGet(HIMAWARI_KEYS.tournaments, SEED_TOURNAMENTS).filter(i => i.id !== id);
-  himawariSet(HIMAWARI_KEYS.tournaments, items);
+async function deleteTourney(id) {
+  await apiDelete('tournaments', id);
   renderTournaments();
 }
 
-document.getElementById('tourney-form').addEventListener('submit', (e) => {
+document.getElementById('tourney-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('tourney-id').value;
-  const items = himawariGet(HIMAWARI_KEYS.tournaments, SEED_TOURNAMENTS);
   const record = {
     id: id || 't' + Date.now(),
     name: document.getElementById('tourney-name').value,
@@ -314,9 +296,7 @@ document.getElementById('tourney-form').addEventListener('submit', (e) => {
     format: document.getElementById('tourney-format').value,
     status: document.getElementById('tourney-status').value || 'Upcoming',
   };
-  const idx = items.findIndex(i => i.id === id);
-  if (idx > -1) items[idx] = record; else items.unshift(record);
-  himawariSet(HIMAWARI_KEYS.tournaments, items);
+  await apiSave('tournaments', record);
   e.target.reset();
   document.getElementById('tourney-id').value = '';
   document.getElementById('tourney-cancel').style.display = 'none';
@@ -329,7 +309,7 @@ document.getElementById('tourney-cancel').addEventListener('click', () => {
   document.getElementById('tourney-cancel').style.display = 'none';
 });
 
-/* ---------- Bracket generator ---------- */
+/* ---------- Bracket generator (stays local — it's a scratch tool, not shared data) ---------- */
 function suggestFormat(n) {
   if (n <= 5) return 'single';
   if (n <= 12) return 'double';
