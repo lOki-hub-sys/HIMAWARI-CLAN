@@ -1,1 +1,17 @@
-{ "name": "himawari-clan", "compatibility_date": "2026-08-25", "assets": { "directory": "." } }
+{
+  "name": "himawari-clan",
+  "compatibility_date": "2026-08-25",
+  "main": "worker/index.js",
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "himawari-db",
+      "database_id": "YOUR-ACTUAL-DATABASE-ID-HERE"
+    }
+  ]
+}
