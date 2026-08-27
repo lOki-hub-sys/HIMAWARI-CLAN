@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Himawari — Call of Duty Clan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="home">
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><span class="emblem"></span> Himawari</a>
+  <div class="nav-links">
+    <a href="index.html" data-page="home">Home</a>
+    <a href="roster.html" data-page="roster">Roster</a>
+    <a href="gallery.html" data-page="gallery">Gallery</a>
+    <a href="join.html" data-page="join">Join</a>
+    <a href="admin.html" data-page="admin">Admin</a>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <div class="emblem-hero" aria-hidden="true"></div>
+    <h1>HIMAWARI <span class="accent">CLAN</span></h1>
+    <p class="lede">A Call of Duty competitive clan built on discipline and bloom — we grow rank by rank, scrim by scrim. Six starters, one rotation, no dead weight.</p>
+    <div class="hero-cta">
+      <a href="join.html" class="btn btn-primary">Apply to the roster</a>
+      <a href="roster.html" class="btn btn-ghost">Meet the team</a>
+    </div>
+  </div>
+</header>
+
+<section class="container">
+  <div class="stat-strip reveal">
+    <div class="stat"><div class="num">14–3</div><div class="label">Season record</div></div>
+    <div class="stat"><div class="num">#2</div><div class="label">Regional ranking</div></div>
+    <div class="stat"><div class="num">6</div><div class="label">Active starters</div></div>
+    <div class="stat"><div class="num">2021</div><div class="label">Founded</div></div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="section-head reveal">
+    <span class="eyebrow">Latest</span>
+    <h2>Announcements</h2>
+  </div>
+  <div id="announce-feed" class="grid grid-2 reveal"></div>
+</section>
+
+<footer class="site-footer">
+  <span>© 2026 Himawari Clan</span>
+  <span>Managed via the clan admin panel</span>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  const feed = document.getElementById('announce-feed');
+  const items = himawariGet(HIMAWARI_KEYS.announcements, SEED_ANNOUNCEMENTS).slice(0, 4);
+  feed.innerHTML = items.map(a => `
+    <article class="card announce">
+      <span class="eyebrow">Announcement</span>
+      <h3>${a.title}</h3>
+      <p>${a.body}</p>
+      <time>${a.date}</time>
+    </article>
+  `).join('') || '<p>No announcements yet.</p>';
+</script>
+</body>
+</html>

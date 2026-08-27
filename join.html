@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join — Himawari Clan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="join">
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><span class="emblem"></span> Himawari</a>
+  <div class="nav-links">
+    <a href="index.html" data-page="home">Home</a>
+    <a href="roster.html" data-page="roster">Roster</a>
+    <a href="gallery.html" data-page="gallery">Gallery</a>
+    <a href="join.html" data-page="join">Join</a>
+    <a href="admin.html" data-page="admin">Admin</a>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<header class="hero" style="padding-bottom:40px;">
+  <div class="container">
+    <span class="eyebrow">Recruitment</span>
+    <h1 style="font-size:clamp(2rem,5vw,3.2rem);margin-top:12px;">Grow with us</h1>
+    <p class="lede" style="margin-top:14px;">We're looking for a flex substitute ahead of the fall season. Academy tryouts run monthly.</p>
+  </div>
+</header>
+
+<section class="container">
+  <div class="grid grid-2">
+    <div class="card reveal">
+      <h3 style="font-size:1.1rem;margin-bottom:14px;">What we look for</h3>
+      <ul style="color:var(--text-dim);padding-left:18px;line-height:1.9;">
+        <li>Diamond+ rank or equivalent competitive experience</li>
+        <li>Available for scrims Tue/Thu evenings + weekend matches</li>
+        <li>Active mic, calm under pressure, coachable</li>
+        <li>18+ preferred, exceptions considered case-by-case</li>
+      </ul>
+    </div>
+
+    <form class="card reveal" id="apply-form">
+      <h3 style="font-size:1.1rem;margin-bottom:16px;">Application</h3>
+      <div class="field">
+        <label for="ign">In-game name</label>
+        <input id="ign" name="ign" type="text" required>
+      </div>
+      <div class="field">
+        <label for="rank">Current rank</label>
+        <input id="rank" name="rank" type="text" required>
+      </div>
+      <div class="field">
+        <label for="discord">Discord handle</label>
+        <input id="discord" name="discord" type="text" required>
+      </div>
+      <div class="field">
+        <label for="notes">Anything else we should know?</label>
+        <textarea id="notes" name="notes"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit application</button>
+      <p id="apply-note" style="margin-top:14px;font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);"></p>
+    </form>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <span>© 2026 Himawari Clan</span>
+  <span>Managed via the clan admin panel</span>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  document.getElementById('apply-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    document.getElementById('apply-note').textContent =
+      'Thanks — this demo form doesn\u2019t send anywhere yet. Wire it to Discord webhook / email / the admin backend when you\u2019re ready to go live.';
+    e.target.reset();
+  });
+</script>
+</body>
+</html>

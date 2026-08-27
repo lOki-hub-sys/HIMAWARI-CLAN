@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Himawari Clan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="admin">
+
+<nav class="site-nav">
+  <a href="index.html" class="brand"><span class="emblem"></span> Himawari</a>
+  <div class="nav-links">
+    <a href="index.html" data-page="home">Home</a>
+    <a href="roster.html" data-page="roster">Roster</a>
+    <a href="gallery.html" data-page="gallery">Gallery</a>
+    <a href="join.html" data-page="join">Join</a>
+    <a href="admin.html" data-page="admin">Admin</a>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<!-- Login gate -->
+<div id="login-gate" class="login-gate container">
+  <div class="card login-box reveal is-visible">
+    <span class="eyebrow">Admin access</span>
+    <h2 style="font-size:1.4rem;margin:10px 0 20px;">Sign in</h2>
+    <div class="field">
+      <label for="admin-user">Username</label>
+      <input id="admin-user" type="text" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="admin-pass">Password</label>
+      <input id="admin-pass" type="password" autocomplete="current-password">
+    </div>
+    <button id="login-btn" class="btn btn-primary" style="width:100%;justify-content:center;">Sign in</button>
+    <p id="login-error" style="margin-top:12px;font-family:var(--font-mono);font-size:0.78rem;color:var(--ember);"></p>
+    <p style="margin-top:20px;font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);line-height:1.7;">
+      Demo auth only — this checks a client-side hash for the prototype. Before going live, replace this with real
+      per-admin accounts and server-verified sessions (see the admin panel section of the skill this site was built with).
+    </p>
+  </div>
+</div>
+
+<!-- Admin app (hidden until authenticated) -->
+<div id="admin-app" class="container" style="display:none; padding-top:32px;">
+  <div class="section-head" style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <span class="eyebrow">Control room</span>
+      <h2 style="margin-top:8px;">Manage the site</h2>
+    </div>
+    <button id="logout-btn" class="btn btn-ghost">Sign out</button>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="announcements">Announcements</button>
+    <button class="admin-tab" data-tab="tournaments">Tournaments</button>
+    <button class="admin-tab" data-tab="bracket">Bracket generator</button>
+  </div>
+
+  <!-- Announcements -->
+  <div class="admin-panel active" id="panel-announcements">
+    <form id="announce-form" class="card" style="margin-bottom:28px;">
+      <input type="hidden" id="announce-id">
+      <div class="grid grid-2">
+        <div class="field"><label for="announce-title">Title</label><input id="announce-title" required></div>
+        <div class="field"><label for="announce-date">Date</label><input id="announce-date" type="date" required></div>
+      </div>
+      <div class="field"><label for="announce-body">Body</label><textarea id="announce-body" required></textarea></div>
+      <button type="submit" class="btn btn-primary">Save announcement</button>
+      <button type="button" id="announce-cancel" class="btn btn-ghost" style="display:none;">Cancel edit</button>
+    </form>
+    <div id="announce-list"></div>
+  </div>
+
+  <!-- Tournaments -->
+  <div class="admin-panel" id="panel-tournaments">
+    <form id="tourney-form" class="card" style="margin-bottom:28px;">
+      <input type="hidden" id="tourney-id">
+      <div class="grid grid-2">
+        <div class="field"><label for="tourney-name">Name</label><input id="tourney-name" required></div>
+        <div class="field"><label for="tourney-date">Date</label><input id="tourney-date" type="date" required></div>
+        <div class="field">
+          <label for="tourney-format">Format</label>
+          <select id="tourney-format">
+            <option>Single elimination</option>
+            <option>Double elimination</option>
+            <option>Round robin</option>
+          </select>
+        </div>
+        <div class="field"><label for="tourney-status">Status</label><input id="tourney-status" placeholder="e.g. Upcoming, Completed — placed 2nd"></div>
+      </div>
+      <button type="submit" class="btn btn-primary">Save tournament</button>
+      <button type="button" id="tourney-cancel" class="btn btn-ghost" style="display:none;">Cancel edit</button>
+    </form>
+    <div id="tourney-list"></div>
+  </div>
+
+  <!-- Bracket generator -->
+  <div class="admin-panel" id="panel-bracket">
+    <div class="card" style="margin-bottom:28px;">
+      <div class="field">
+        <label for="bracket-teams">Teams / participants (one per line)</label>
+        <textarea id="bracket-teams" placeholder="Nightshade&#10;Ironclad&#10;Redline&#10;Vantage"></textarea>
+      </div>
+      <div class="grid grid-2" style="margin-bottom:18px;">
+        <div class="field">
+          <label for="bracket-format">Format</label>
+          <select id="bracket-format">
+            <option value="auto">Auto-suggest based on team count</option>
+            <option value="single">Single elimination</option>
+            <option value="double">Double elimination</option>
+            <option value="round-robin">Round robin</option>
+          </select>
+        </div>
+      </div>
+      <button id="bracket-generate" class="btn btn-primary">Generate bracket</button>
+      <p id="bracket-note" style="margin-top:14px;font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);"></p>
+    </div>
+    <div id="bracket-output"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <span>© 2026 Himawari Clan</span>
+  <span>Admin panel — internal use</span>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
