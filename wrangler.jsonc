@@ -11,7 +11,7 @@
     {
       "binding": "DB",
       "database_name": "himawari-db",
-      "database_id": "YOUR-ACTUAL-DATABASE-ID-HERE"
+      "database_id": "bcfea4fd-13e6-47fb-921b-afb3d395cba5"
     }
   ]
 }
