@@ -485,17 +485,27 @@ section { padding: clamp(56px, 9vw, 104px) 0; }
 .section-head { margin-bottom: 36px; }
 .section-head h2 { font-size: clamp(1.7rem, 4vw, 2.4rem); margin-top: 8px; }
 
-/* scroll reveal — staggered, direction-varied */
+/* scroll reveal — staggered, direction-varied.
+   IMPORTANT: .reveal is visible by default. JS opts an element INTO the
+   hidden/animated starting state (via .reveal-armed) only once it has
+   successfully set everything up, then reveals it on scroll. This way,
+   if JS is slow, blocked, or a specific layout ever fails to intersect,
+   content simply shows as normal instead of staying invisible. */
 .reveal {
+  opacity: 1;
+  transform: none;
+  clip-path: none;
+}
+.reveal.reveal-armed {
   opacity: 0;
   transition: opacity 640ms var(--ease-out), transform 640ms var(--ease-out), clip-path 640ms var(--ease-out);
   clip-path: inset(0 0 100% 0);
 }
-.reveal[data-dir="up"] { transform: translateY(36px); }
-.reveal[data-dir="left"] { transform: translateX(-48px); clip-path: inset(0 100% 0 0); }
-.reveal[data-dir="right"] { transform: translateX(48px); clip-path: inset(0 0 0 100%); }
-.reveal[data-dir="scale"] { transform: scale(0.9) translateY(20px); clip-path: none; }
-.reveal.is-visible {
+.reveal.reveal-armed[data-dir="up"] { transform: translateY(36px); }
+.reveal.reveal-armed[data-dir="left"] { transform: translateX(-48px); clip-path: inset(0 100% 0 0); }
+.reveal.reveal-armed[data-dir="right"] { transform: translateX(48px); clip-path: inset(0 0 0 100%); }
+.reveal.reveal-armed[data-dir="scale"] { transform: scale(0.9) translateY(20px); clip-path: none; }
+.reveal.reveal-armed.is-visible {
   opacity: 1;
   transform: none;
   clip-path: inset(0 0 0% 0);
