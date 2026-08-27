@@ -56,6 +56,8 @@
 
   <div class="admin-tabs">
     <button class="admin-tab active" data-tab="announcements">Announcements</button>
+    <button class="admin-tab" data-tab="roster">Roster</button>
+    <button class="admin-tab" data-tab="applicants">Applicants <span id="applicant-count-badge"></span></button>
     <button class="admin-tab" data-tab="tournaments">Tournaments</button>
     <button class="admin-tab" data-tab="bracket">Bracket generator</button>
   </div>
@@ -73,6 +75,30 @@
       <button type="button" id="announce-cancel" class="btn btn-ghost" style="display:none;">Cancel edit</button>
     </form>
     <div id="announce-list"></div>
+  </div>
+
+  <!-- Roster -->
+  <div class="admin-panel" id="panel-roster">
+    <form id="roster-form" class="card" style="margin-bottom:28px;">
+      <input type="hidden" id="roster-id">
+      <div class="grid grid-2">
+        <div class="field"><label for="roster-initials">Avatar initials</label><input id="roster-initials" maxlength="3" placeholder="e.g. SK" required></div>
+        <div class="field"><label for="roster-name">Name</label><input id="roster-name" placeholder="e.g. Skyline" required></div>
+        <div class="field"><label for="roster-role">Role</label><input id="roster-role" placeholder="e.g. In-game leader" required></div>
+        <div class="field"><label for="roster-meta">Meta line</label><input id="roster-meta" placeholder="e.g. Joined 2021 · Hardpoint / SnD caller" required></div>
+      </div>
+      <button type="submit" class="btn btn-primary">Save member</button>
+      <button type="button" id="roster-cancel" class="btn btn-ghost" style="display:none;">Cancel edit</button>
+    </form>
+    <div id="roster-list"></div>
+  </div>
+
+  <!-- Applicants -->
+  <div class="admin-panel" id="panel-applicants">
+    <p style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);margin-bottom:20px;">
+      Applications submitted through the public Join page land here. Visible to admins only.
+    </p>
+    <div id="applicant-list"></div>
   </div>
 
   <!-- Tournaments -->
