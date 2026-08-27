@@ -41,6 +41,8 @@ function showAdmin() {
   document.getElementById('login-gate').style.display = 'none';
   document.getElementById('admin-app').style.display = 'block';
   renderAnnouncements();
+  renderRoster();
+  renderApplicants();
   renderTournaments();
 }
 
@@ -141,6 +143,125 @@ document.getElementById('announce-cancel').addEventListener('click', () => {
   document.getElementById('announce-id').value = '';
   document.getElementById('announce-cancel').style.display = 'none';
 });
+
+/* ---------- Roster CRUD ---------- */
+function renderRoster() {
+  const items = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER);
+  const list = document.getElementById('roster-list');
+  list.innerHTML = items.map(p => `
+    <div class="list-row">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div class="player-avatar" style="margin-bottom:0;flex-shrink:0;">${p.initials}</div>
+        <div>
+          <strong>${p.name}</strong><br>
+          <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;">${p.role}</span><br>
+          <span style="color:var(--text-dim);font-size:0.85rem;">${p.meta}</span>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button data-edit="${p.id}">Edit</button>
+        <button data-delete="${p.id}">Delete</button>
+      </div>
+    </div>
+  `).join('') || '<p style="color:var(--text-dim);">No roster members yet.</p>';
+
+  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editRoster(btn.dataset.edit)));
+  list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteRoster(btn.dataset.delete)));
+}
+
+function editRoster(id) {
+  const items = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER);
+  const p = items.find(i => i.id === id);
+  if (!p) return;
+  document.getElementById('roster-id').value = p.id;
+  document.getElementById('roster-initials').value = p.initials;
+  document.getElementById('roster-name').value = p.name;
+  document.getElementById('roster-role').value = p.role;
+  document.getElementById('roster-meta').value = p.meta;
+  document.getElementById('roster-cancel').style.display = 'inline-flex';
+}
+
+function deleteRoster(id) {
+  if (!confirm('Remove this member from the roster?')) return;
+  const items = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER).filter(i => i.id !== id);
+  himawariSet(HIMAWARI_KEYS.roster, items);
+  renderRoster();
+}
+
+document.getElementById('roster-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const id = document.getElementById('roster-id').value;
+  const items = himawariGet(HIMAWARI_KEYS.roster, SEED_ROSTER);
+  const record = {
+    id: id || 'p' + Date.now(),
+    initials: document.getElementById('roster-initials').value.toUpperCase(),
+    name: document.getElementById('roster-name').value,
+    role: document.getElementById('roster-role').value,
+    meta: document.getElementById('roster-meta').value,
+  };
+  const idx = items.findIndex(i => i.id === id);
+  if (idx > -1) items[idx] = record; else items.push(record);
+  himawariSet(HIMAWARI_KEYS.roster, items);
+  e.target.reset();
+  document.getElementById('roster-id').value = '';
+  document.getElementById('roster-cancel').style.display = 'none';
+  renderRoster();
+});
+
+document.getElementById('roster-cancel').addEventListener('click', () => {
+  document.getElementById('roster-form').reset();
+  document.getElementById('roster-id').value = '';
+  document.getElementById('roster-cancel').style.display = 'none';
+});
+
+/* ---------- Applicants (admin-only inbox, no public listing) ---------- */
+function renderApplicants() {
+  const items = himawariGet(HIMAWARI_KEYS.applicants, []);
+  const list = document.getElementById('applicant-list');
+  const badge = document.getElementById('applicant-count-badge');
+  badge.textContent = items.length ? items.length : '';
+  badge.className = items.length ? 'tab-badge' : '';
+
+  list.innerHTML = items.map(a => `
+    <div class="list-row">
+      <div>
+        <strong>${a.ign}</strong>
+        <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--gold);margin-left:8px;">${a.rank}</span><br>
+        <span style="color:var(--text-dim);font-size:0.85rem;">Discord: ${a.discord}</span><br>
+        ${a.notes ? `<span style="color:var(--text-dim);font-size:0.85rem;">"${a.notes}"</span><br>` : ''}
+        <time style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">Applied ${a.date}</time>
+      </div>
+      <div class="row-actions">
+        <button data-promote="${a.id}">Add to roster</button>
+        <button data-delete="${a.id}">Delete</button>
+      </div>
+    </div>
+  `).join('') || '<p style="color:var(--text-dim);">No applications yet.</p>';
+
+  list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteApplicant(btn.dataset.delete)));
+  list.querySelectorAll('[data-promote]').forEach(btn => btn.addEventListener('click', () => promoteApplicant(btn.dataset.promote)));
+}
+
+function deleteApplicant(id) {
+  const items = himawariGet(HIMAWARI_KEYS.applicants, []).filter(i => i.id !== id);
+  himawariSet(HIMAWARI_KEYS.applicants, items);
+  renderApplicants();
+}
+
+function promoteApplicant(id) {
+  const items = himawariGet(HIMAWARI_KEYS.applicants, []);
+  const a = items.find(i => i.id === id);
+  if (!a) return;
+  // Pre-fill the roster form so the admin reviews/adjusts details before saving.
+  document.querySelector('.admin-tab[data-tab="roster"]').click();
+  document.getElementById('roster-id').value = '';
+  document.getElementById('roster-initials').value = a.ign.slice(0, 2).toUpperCase();
+  document.getElementById('roster-name').value = a.ign;
+  document.getElementById('roster-role').value = 'Substitute';
+  document.getElementById('roster-meta').value = `Rank: ${a.rank} · Discord: ${a.discord}`;
+  document.getElementById('roster-cancel').style.display = 'inline-flex';
+  document.getElementById('roster-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 /* ---------- Tournaments CRUD ---------- */
 function renderTournaments() {
