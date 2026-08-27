@@ -1,30 +1,7 @@
 const HIMAWARI_KEYS = {
-  announcements: 'himawari_announcements',
-  tournaments: 'himawari_tournaments',
   bracket: 'himawari_bracket',
   auth: 'himawari_admin_session',
-  roster: 'himawari_roster',
-  applicants: 'himawari_applicants',
 };
-
-const SEED_ANNOUNCEMENTS = [
-  { id: 'a1', title: 'Scrim block vs Nightshade opens Friday', body: 'Signups open in #scrims. Bo3, 6v6 SnD/Hardpoint/Control rotation.', date: '2026-08-22' },
-  { id: 'a2', title: 'Roster update: welcome Petal to the starting six', body: 'Petal moves up from academy after a strong tryout series.', date: '2026-08-14' },
-];
-
-const SEED_TOURNAMENTS = [
-  { id: 't1', name: 'Sunflower Open — August', format: 'Single elimination', date: '2026-08-30', status: 'Upcoming' },
-  { id: 't2', name: 'Community Cup #4', format: 'Round robin', date: '2026-07-19', status: 'Completed — Himawari placed 2nd' },
-];
-
-const SEED_ROSTER = [
-  { id: 'p1', initials: 'SK', name: 'Skyline', role: 'In-game leader', meta: 'Joined 2021 · Hardpoint / SnD caller' },
-  { id: 'p2', initials: 'PT', name: 'Petal', role: 'Slayer', meta: 'Joined 2026 · Promoted from academy' },
-  { id: 'p3', initials: 'RS', name: 'Rusk', role: 'Objective / Anchor', meta: 'Joined 2022 · Control specialist' },
-  { id: 'p4', initials: 'VN', name: 'Vane', role: 'Flex support', meta: 'Joined 2023 · SMG / flank routes' },
-  { id: 'p5', initials: 'OC', name: 'Ochre', role: 'Slayer', meta: 'Joined 2022 · Rifle duelist' },
-  { id: 'p6', initials: 'BR', name: 'Briar', role: 'Substitute', meta: 'Joined 2025 · Flex / academy call-up' },
-];
 
 function himawariGet(key, seed) {
   const raw = localStorage.getItem(key);
@@ -37,6 +14,31 @@ function himawariGet(key, seed) {
 
 function himawariSet(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
+}
+
+/* ---------- Shared-data API helpers (D1-backed, replaces localStorage) ---------- */
+// table: 'roster' | 'announcements' | 'tournaments' | 'applicants'
+
+async function apiList(table) {
+  const res = await fetch(`/api/${table}`);
+  if (!res.ok) throw new Error(`Failed to load ${table}`);
+  return res.json();
+}
+
+async function apiSave(table, record) {
+  const res = await fetch(`/api/${table}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record),
+  });
+  if (!res.ok) throw new Error(`Failed to save ${table}`);
+  return res.json();
+}
+
+async function apiDelete(table, id) {
+  const res = await fetch(`/api/${table}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`Failed to delete from ${table}`);
+  return res.json();
 }
 
 function initNav() {
