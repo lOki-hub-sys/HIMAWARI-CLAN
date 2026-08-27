@@ -3,6 +3,8 @@ const HIMAWARI_KEYS = {
   tournaments: 'himawari_tournaments',
   bracket: 'himawari_bracket',
   auth: 'himawari_admin_session',
+  roster: 'himawari_roster',
+  applicants: 'himawari_applicants',
 };
 
 const SEED_ANNOUNCEMENTS = [
@@ -13,6 +15,15 @@ const SEED_ANNOUNCEMENTS = [
 const SEED_TOURNAMENTS = [
   { id: 't1', name: 'Sunflower Open — August', format: 'Single elimination', date: '2026-08-30', status: 'Upcoming' },
   { id: 't2', name: 'Community Cup #4', format: 'Round robin', date: '2026-07-19', status: 'Completed — Himawari placed 2nd' },
+];
+
+const SEED_ROSTER = [
+  { id: 'p1', initials: 'SK', name: 'Skyline', role: 'In-game leader', meta: 'Joined 2021 · Hardpoint / SnD caller' },
+  { id: 'p2', initials: 'PT', name: 'Petal', role: 'Slayer', meta: 'Joined 2026 · Promoted from academy' },
+  { id: 'p3', initials: 'RS', name: 'Rusk', role: 'Objective / Anchor', meta: 'Joined 2022 · Control specialist' },
+  { id: 'p4', initials: 'VN', name: 'Vane', role: 'Flex support', meta: 'Joined 2023 · SMG / flank routes' },
+  { id: 'p5', initials: 'OC', name: 'Ochre', role: 'Slayer', meta: 'Joined 2022 · Rifle duelist' },
+  { id: 'p6', initials: 'BR', name: 'Briar', role: 'Substitute', meta: 'Joined 2025 · Flex / academy call-up' },
 ];
 
 function himawariGet(key, seed) {
