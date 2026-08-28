@@ -62,6 +62,7 @@ body::before {
     linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
   background-size: 46px 46px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 0%, transparent 75%);
 }
 
 img, svg { display: block; max-width: 100%; }
@@ -114,7 +115,9 @@ h1, h2, h3, h4 {
 .card::before, .card::after,
 .stat::before, .stat::after,
 .gallery-tile::before, .gallery-tile::after,
-.login-box::before, .login-box::after {
+.login-box::before, .login-box::after,
+.match::before, .match::after,
+.player-avatar::before, .player-avatar::after {
   content: '';
   position: absolute;
   width: var(--hud-corner);
@@ -125,18 +128,20 @@ h1, h2, h3, h4 {
   pointer-events: none;
   z-index: 3;
 }
-.card::before, .stat::before, .gallery-tile::before, .login-box::before {
+.card::before, .stat::before, .gallery-tile::before, .login-box::before, .match::before, .player-avatar::before {
   top: -1px; left: -1px;
   border-right: none; border-bottom: none;
 }
-.card::after, .stat::after, .gallery-tile::after, .login-box::after {
+.card::after, .stat::after, .gallery-tile::after, .login-box::after, .match::after, .player-avatar::after {
   bottom: -1px; right: -1px;
   border-left: none; border-top: none;
 }
 .card:hover::before, .card:hover::after,
 .stat:hover::before, .stat:hover::after,
 .gallery-tile:hover::before, .gallery-tile:hover::after,
-.login-box::before, .login-box::after {
+.login-box::before, .login-box::after,
+.match:hover::before, .match:hover::after,
+.player-avatar:hover::before, .player-avatar:hover::after {
   opacity: 1;
 }
 .login-box::before, .login-box::after { opacity: 1; }
@@ -152,6 +157,7 @@ h1, h2, h3, h4 {
   padding: 16px clamp(20px, 5vw, 56px);
   background: rgba(7, 8, 10, 0.88);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
 .site-nav::after {
@@ -278,6 +284,7 @@ h1, h2, h3, h4 {
   height: clamp(200px, 26vw, 300px);
   margin: 0 auto;
   position: relative;
+  animation: spin-slow 28s linear infinite;
 }
 .emblem-hero::before {
   /* reticle ring */
@@ -310,7 +317,6 @@ h1, h2, h3, h4 {
   from { opacity: 0; transform: scale(0.2) rotate(var(--rot, 0deg)); }
   to { opacity: 1; transform: scale(1) rotate(var(--rot, 0deg)); }
 }
-.emblem-hero { animation: spin-slow 28s linear infinite; }
 @keyframes spin-slow { to { transform: rotate(360deg); } }
 
 /* ---------- Hero ---------- */
@@ -488,9 +494,7 @@ section { padding: clamp(56px, 9vw, 104px) 0; }
 /* scroll reveal — staggered, direction-varied.
    IMPORTANT: .reveal is visible by default. JS opts an element INTO the
    hidden/animated starting state (via .reveal-armed) only once it has
-   successfully set everything up, then reveals it on scroll. This way,
-   if JS is slow, blocked, or a specific layout ever fails to intersect,
-   content simply shows as normal instead of staying invisible. */
+   successfully set everything up, then reveals it on scroll. */
 .reveal {
   opacity: 1;
   transform: none;
@@ -567,6 +571,8 @@ section { padding: clamp(56px, 9vw, 104px) 0; }
 .gallery-tile:hover { border-color: var(--gold-dim); }
 .gallery-tile .fill {
   position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
   transition: transform 700ms var(--ease-snap), filter 700ms;
 }
 .gallery-tile:hover .fill { transform: scale(1.12) rotate(-1deg); filter: brightness(1.15) saturate(1.1); }
@@ -579,6 +585,7 @@ section { padding: clamp(56px, 9vw, 104px) 0; }
   transform: translateY(6px);
   opacity: 0.85;
   transition: transform 220ms var(--ease-snap), opacity 220ms;
+  z-index: 2;
 }
 .gallery-tile:hover .cap { transform: translateY(0); opacity: 1; }
 
@@ -739,6 +746,7 @@ button:focus-visible, a:focus-visible, .btn:focus-visible {
     top: 100%; left: 0; right: 0;
     background: rgba(7, 8, 10, 0.97);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 8px 20px;
     border-bottom: 1px solid var(--line);
     gap: 4px;
