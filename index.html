@@ -43,6 +43,7 @@
   </div>
 </section>
 
+<!-- Inside index.html -->
 <section class="container">
   <div class="section-head reveal">
     <span class="eyebrow">Latest</span>
@@ -51,13 +52,34 @@
   <div id="announce-feed" class="grid grid-2 reveal"></div>
 </section>
 
-<footer class="site-footer">
-  <span>© 2026 Himawari Clan</span>
-  <span>Managed via the clan admin panel</span>
-</footer>
-
-<script src="js/main.js"></script>
 <script>
+  async function loadAnnouncements() {
+    const feed = document.getElementById('announce-feed');
+    try {
+      const response = await fetch('/api/announcements');
+      const items = await response.json();
+
+      if (!items || items.length === 0) {
+        feed.innerHTML = '<p class="text-muted">No announcements published yet.</p>';
+        return;
+      }
+
+      feed.innerHTML = items.slice(0, 4).map(a => `
+        <article class="card announce">
+          <span class="eyebrow">${a.category || 'Announcement'}</span>
+          <h3>${a.title}</h3>
+          <p>${a.body}</p>
+          <time>${new Date(a.created_at).toLocaleDateString()}</time>
+        </article>
+      `).join('');
+    } catch (err) {
+      console.error('Failed to load announcements:', err);
+      feed.innerHTML = '<p>Unable to load announcements at this time.</p>';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadAnnouncements);
+</script>
   const feed = document.getElementById('announce-feed');
   const items = himawariGet(HIMAWARI_KEYS.announcements, SEED_ANNOUNCEMENTS).slice(0, 4);
   feed.innerHTML = items.map(a => `
