@@ -1,104 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Himawari — Call of Duty Clan</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Himawari — Call of Duty Clan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body data-page="home">
 
-<nav class="site-nav">
-  <a href="index.html" class="brand"><span class="emblem"></span> Himawari</a>
-  <div class="nav-links">
-    <a href="index.html" data-page="home">Home</a>
-    <a href="roster.html" data-page="roster">Roster</a>
-    <a href="gallery.html" data-page="gallery">Gallery</a>
-    <a href="join.html" data-page="join">Join</a>
-    <a href="admin.html" data-page="admin">Admin</a>
-  </div>
-  <button class="nav-toggle" aria-label="Toggle menu">☰</button>
-</nav>
-
-<header class="hero">
-  <div class="container">
-    <div class="emblem-hero" aria-hidden="true"></div>
-    <h1>HIMAWARI <span class="accent">CLAN</span></h1>
-    <p class="lede">A Call of Duty competitive clan built on discipline and bloom — we grow rank by rank, scrim by scrim. Six starters, one rotation, no dead weight.</p>
-    <div class="hero-cta">
-      <a href="join.html" class="btn btn-primary">Apply to the roster</a>
-      <a href="roster.html" class="btn btn-ghost">Meet the team</a>
+  <nav class="site-nav">
+    <a href="index.html" class="brand"><span class="emblem"></span> Himawari</a>
+    <div class="nav-links">
+      <a href="index.html" data-page="home">Home</a>
+      <a href="roster.html" data-page="roster">Roster</a>
+      <a href="gallery.html" data-page="gallery">Gallery</a>
+      <a href="join.html" data-page="join">Join</a>
+      <a href="admin.html" data-page="admin">Admin</a>
     </div>
-  </div>
-</header>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+  </nav>
 
-<section class="container">
-  <div class="stat-strip reveal">
-    <div class="stat"><div class="num">14–3</div><div class="label">Season record</div></div>
-    <div class="stat"><div class="num">#2</div><div class="label">Regional ranking</div></div>
-    <div class="stat"><div class="num">6</div><div class="label">Active starters</div></div>
-    <div class="stat"><div class="num">2021</div><div class="label">Founded</div></div>
-  </div>
-</section>
+  <header class="hero">
+    <div class="container">
+      <div class="emblem-hero" aria-hidden="true"></div>
+      <h1>HIMAWARI <span class="accent">CLAN</span></h1>
+      <p class="lede">A Call of Duty competitive clan built on discipline and bloom — we grow rank by rank, scrim by scrim. Six starters, one rotation, no dead weight.</p>
+      <div class="hero-cta">
+        <a href="join.html" class="btn btn-primary">Apply to the roster</a>
+        <a href="roster.html" class="btn btn-ghost">Meet the team</a>
+      </div>
+    </div>
+  </header>
 
-<!-- Inside index.html -->
-<section class="container">
-  <div class="section-head reveal">
-    <span class="eyebrow">Latest</span>
-    <h2>Announcements</h2>
-  </div>
-  <div id="announce-feed" class="grid grid-2 reveal"></div>
-<!-- Inside index.html, right after the announcements section -->
-<section class="container" id="bracket-section" style="display: none;">
-  <div class="section-head reveal">
-    <span class="eyebrow">Tournament</span>
-    <h2 id="bracket-title">Active Bracket</h2>
-  </div>
-  
-  <!-- Bracket wrapper uses the styled .bracket class from your css/style.css -->
-  <div id="bracket-container" class="bracket reveal"></div>
-</section>
+  <section class="container">
+    <div class="stat-strip reveal">
+      <div class="stat"><div class="num">14–3</div><div class="label">Season record</div></div>
+      <div class="stat"><div class="num">#2</div><div class="label">Regional ranking</div></div>
+      <div class="stat"><div class="num">6</div><div class="label">Active starters</div></div>
+      <div class="stat"><div class="num">2021</div><div class="label">Founded</div></div>
+    </div>
+  </section>
 
-<script>
-  async function loadAnnouncements() {
-    const feed = document.getElementById('announce-feed');
-    try {
-      const response = await fetch('/api/announcements');
-      const items = await response.json();
+  <!-- Announcements Section -->
+  <section class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Latest</span>
+      <h2>Announcements</h2>
+    </div>
+    <div id="announce-feed" class="grid grid-2 reveal"></div>
+  </section>
 
-      if (!items || items.length === 0) {
-        feed.innerHTML = '<p class="text-muted">No announcements published yet.</p>';
-        return;
+  <!-- Active Tournament Bracket Section -->
+  <section class="container" id="bracket-section" style="display: none;">
+    <div class="section-head reveal">
+      <span class="eyebrow">Tournament</span>
+      <h2 id="bracket-title">Active Bracket</h2>
+    </div>
+    <div id="bracket-container" class="bracket reveal"></div>
+  </section>
+
+  <script>
+    // 1. Fetch & Render Announcements
+    async function loadAnnouncements() {
+      const feed = document.getElementById('announce-feed');
+      try {
+        const response = await fetch('/api/announcements');
+        if (!response.ok) throw new Error('Network response failed');
+        
+        const items = await response.json();
+
+        if (!items || items.length === 0) {
+          feed.innerHTML = '<p class="text-muted">No announcements published yet.</p>';
+          return;
+        }
+
+        feed.innerHTML = items.slice(0, 4).map(a => `
+          <article class="card announce">
+            <span class="eyebrow">${a.category || 'Announcement'}</span>
+            <h3>${a.title}</h3>
+            <p>${a.body}</p>
+            <time>${new Date(a.created_at || Date.now()).toLocaleDateString()}</time>
+          </article>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load announcements:', err);
+        feed.innerHTML = '<p class="text-muted">Unable to load announcements at this time.</p>';
       }
-
-      feed.innerHTML = items.slice(0, 4).map(a => `
-        <article class="card announce">
-          <span class="eyebrow">${a.category || 'Announcement'}</span>
-          <h3>${a.title}</h3>
-          <p>${a.body}</p>
-          <time>${new Date(a.created_at).toLocaleDateString()}</time>
-        </article>
-      `).join('');
-    } catch (err) {
-      console.error('Failed to load announcements:', err);
-      feed.innerHTML = '<p>Unable to load announcements at this time.</p>';
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', loadAnnouncements);
-</script>
-  const feed = document.getElementById('announce-feed');
-  const items = himawariGet(HIMAWARI_KEYS.announcements, SEED_ANNOUNCEMENTS).slice(0, 4);
-  feed.innerHTML = items.map(a => `
-    <article class="card announce">
-      <span class="eyebrow">Announcement</span>
-      <h3>${a.title}</h3>
-      <p>${a.body}</p>
-      <time>${a.date}</time>
-    </article>
-  `).join('') || '<p>No announcements yet.</p>';
-</script>
+    // 2. Fetch & Render Tournament Bracket
+    async function loadHomeBracket() {
+      const section = document.getElementById('bracket-section');
+      const titleEl = document.getElementById('bracket-title');
+      const container = document.getElementById('bracket-container');
+
+      try {
+        const res = await fetch('/api/bracket?home=true');
+        if (!res.ok) throw new Error('Bracket API unavailable');
+
+        const bracket = await res.json();
+
+        if (!bracket || !bracket.bracket_data) {
+          section.style.display = 'none';
+          return;
+        }
+
+        section.style.display = 'block';
+        titleEl.textContent = bracket.title || 'Active Tournament Bracket';
+
+        const data = bracket.bracket_data;
+
+        if (data.rounds && Array.isArray(data.rounds)) {
+          container.innerHTML = data.rounds.map(round => `
+            <div class="bracket-round">
+              <h4>${round.name}</h4>
+              ${round.matches.map(m => `
+                <div class="match">
+                  <div class="side ${m.winner && m.winner === m.team1 ? 'winner' : ''}">
+                    <span>${m.team1 || 'TBD'}</span>
+                    <span>${m.score1 ?? ''}</span>
+                  </div>
+                  <div class="side ${m.winner && m.winner === m.team2 ? 'winner' : ''}">
+                    <span>${m.team2 || 'TBD'}</span>
+                    <span>${m.score2 ?? ''}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load homepage bracket:', err);
+        section.style.display = 'none';
+      }
+    }
+
+    // Initialize Page Data on Load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAnnouncements();
+      loadHomeBracket();
+    });
+  </script>
 </body>
 </html>
