@@ -84,8 +84,17 @@
       <div class="grid grid-2">
         <div class="field"><label for="roster-initials">Avatar initials</label><input id="roster-initials" maxlength="3" placeholder="e.g. SK" required></div>
         <div class="field"><label for="roster-name">Name</label><input id="roster-name" placeholder="e.g. Skyline" required></div>
+        <div class="field">
+          <label for="roster-tier">Clan rank</label>
+          <select id="roster-tier" required>
+            <option value="Leadership">Leadership</option>
+            <option value="Admin">Admin</option>
+            <option value="Officer">Officer</option>
+            <option value="Member" selected>Member</option>
+          </select>
+        </div>
         <div class="field"><label for="roster-role">Role</label><input id="roster-role" placeholder="e.g. In-game leader" required></div>
-        <div class="field"><label for="roster-meta">Meta line</label><input id="roster-meta" placeholder="e.g. Joined 2021 · Hardpoint / SnD caller" required></div>
+        <div class="field" style="grid-column:1 / -1;"><label for="roster-meta">Meta line</label><input id="roster-meta" placeholder="e.g. Joined 2021 · Hardpoint / SnD caller" required></div>
       </div>
       <button type="submit" class="btn btn-primary">Save member</button>
       <button type="button" id="roster-cancel" class="btn btn-ghost" style="display:none;">Cancel edit</button>
