@@ -39,8 +39,9 @@
 <div class="roster-modal-overlay" id="roster-modal-overlay">
   <div class="roster-modal">
     <button class="roster-modal-close" id="roster-modal-close" aria-label="Close">✕</button>
-    <div class="roster-row-avatar" id="modal-avatar"></div>
-    <h3 id="modal-name"></h3>
+    <div class="roster-row-avatar" id="modal-avatar" style="width:64px;height:64px;margin:0 auto 16px;font-size:1.4rem;"></div>
+    <h3 id="modal-name" style="text-align:center;margin-bottom:20px;"></h3>
+    
     <div class="roster-modal-field">
       <div class="k">Clan rank</div>
       <div class="v" id="modal-tier"></div>
@@ -52,12 +53,18 @@
     <div class="roster-modal-field">
       <div class="k">Details</div>
       <div class="v" id="modal-meta"></div>
-            <button class="btn btn-ghost view-profile-btn"
-          data-name="${escapeHtml(m.name)}"
-          data-tier="${escapeHtml(m.tier || 'Member')}"
-          data-role="${escapeHtml(m.role || '')}"
-          data-meta="${escapeHtml(m.meta || '')}"
-          data-initials="${escapeHtml(initials)}">
+    </div>
+    <div class="roster-modal-field">
+      <div class="k">K/D Ratio</div>
+      <div class="v" id="modal-kd"></div>
+    </div>
+    <div class="roster-modal-field">
+      <div class="k">Loadout</div>
+      <div class="v" id="modal-loadout"></div>
+    </div>
+    <div class="roster-modal-field" id="modal-socials-row">
+      <div class="k">Socials</div>
+      <div class="v" id="modal-socials" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
     </div>
   </div>
 </div>
@@ -152,9 +159,13 @@
   // ---------- Sections + rows ----------
   function rowHtml(m) {
     const initials = m.initials || getInitials(m.name);
+    const avatarHtml = m.avatar_url 
+      ? `<img src="${escapeHtml(m.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+      : escapeHtml(initials);
+
     return `
       <div class="roster-row">
-        <div class="roster-row-avatar">${escapeHtml(initials)}</div>
+        <div class="roster-row-avatar" style="overflow:hidden;">${avatarHtml}</div>
         <div class="roster-row-body">
           <div class="name-line">
             ${escapeHtml(m.name)}
@@ -168,6 +179,7 @@
           data-role="${escapeHtml(m.role || '')}"
           data-meta="${escapeHtml(m.meta || '')}"
           data-initials="${escapeHtml(initials)}"
+          data-avatar="${escapeHtml(m.avatar_url || '')}"
           data-kd="${escapeHtml(m.kd != null ? Number(m.kd).toFixed(2) : '')}"
           data-loadout="${escapeHtml(m.loadout || '')}"
           data-twitch="${escapeHtml(m.twitch || '')}"
@@ -248,9 +260,15 @@
   const overlay = document.getElementById('roster-modal-overlay');
   const modalClose = document.getElementById('roster-modal-close');
 
-   document.querySelectorAll('.view-profile-btn').forEach((btn) => {
+  document.querySelectorAll('.view-profile-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      document.getElementById('modal-avatar').textContent = btn.dataset.initials;
+      const modalAvatar = document.getElementById('modal-avatar');
+      if (btn.dataset.avatar) {
+        modalAvatar.innerHTML = `<img src="${escapeHtml(btn.dataset.avatar)}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
+      } else {
+        modalAvatar.textContent = btn.dataset.initials;
+      }
+
       document.getElementById('modal-name').textContent = btn.dataset.name;
       document.getElementById('modal-tier').textContent = btn.dataset.tier;
       document.getElementById('modal-role').textContent = btn.dataset.role || '—';
@@ -259,9 +277,10 @@
       document.getElementById('modal-loadout').textContent = btn.dataset.loadout || '—';
 
       const links = [];
-      if (btn.dataset.twitch) links.push(`<a href="https://twitch.tv/${encodeURIComponent(btn.dataset.twitch)}" target="_blank" rel="noopener" class="btn btn-ghost">Twitch</a>`);
-      if (btn.dataset.youtube) links.push(`<a href="${btn.dataset.youtube.startsWith('http') ? btn.dataset.youtube : 'https://youtube.com/' + btn.dataset.youtube}" target="_blank" rel="noopener" class="btn btn-ghost">YouTube</a>`);
-      if (btn.dataset.x) links.push(`<a href="https://x.com/${encodeURIComponent(btn.dataset.x)}" target="_blank" rel="noopener" class="btn btn-ghost">X</a>`);
+      if (btn.dataset.twitch) links.push(`<a href="https://twitch.tv/${encodeURIComponent(btn.dataset.twitch)}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem;">Twitch</a>`);
+      if (btn.dataset.youtube) links.push(`<a href="${btn.dataset.youtube.startsWith('http') ? btn.dataset.youtube : 'https://youtube.com/' + btn.dataset.youtube}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem;">YouTube</a>`);
+      if (btn.dataset.x) links.push(`<a href="https://x.com/${encodeURIComponent(btn.dataset.x)}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem;">X</a>`);
+      
       const socialsRow = document.getElementById('modal-socials-row');
       document.getElementById('modal-socials').innerHTML = links.join(' ') || '—';
       socialsRow.style.display = links.length ? '' : 'none';
