@@ -155,10 +155,24 @@ function initHeroMotion() {
     }, { passive: true });
   }
 }
+function initFooterLinks() {
+  const footer = document.querySelector('.site-footer');
+  if (!footer) return;
+  const links = document.createElement('div');
+  links.className = 'footer-links';
+  links.innerHTML = `
+    <a href="https://discord.gg/YOUR_INVITE" target="_blank" rel="noopener" aria-label="Discord">Discord</a>
+    <a href="https://twitch.tv/YOUR_CLAN" target="_blank" rel="noopener" aria-label="Twitch">Twitch</a>
+    <a href="https://youtube.com/YOUR_CLAN" target="_blank" rel="noopener" aria-label="YouTube">YouTube</a>
+    <a href="https://x.com/YOUR_CLAN" target="_blank" rel="noopener" aria-label="X">X</a>
+  `;
+  footer.appendChild(links);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
   document.querySelectorAll('.emblem, .emblem-hero').forEach((el) => buildEmblem(el));
   initReveal();
   initHeroMotion();
+  initFooterLinks();
 });
