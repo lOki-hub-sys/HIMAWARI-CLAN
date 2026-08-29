@@ -3,14 +3,8 @@
    Handles demo authentication, tab navigation, applicant management,
    announcements, roster updates, tournaments, and bracket generation.
 
-   Data for announcements / roster / tournaments / applicants is now
-   read from and written to the live D1-backed API (/api/<table>),
-   not localStorage. Login and the bracket generator remain purely
-   client-side, unchanged.
-
-   CHANGE FROM PREVIOUS VERSION: the roster module now reads/writes a
-   `tier` field (Leadership / Admin / Officer / Member) alongside the
-   existing free-text `role`. Everything else is unchanged.
+   Data for announcements / roster / tournaments / applicants is read from
+   and written to the live D1-backed API (/api/<table>).
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -216,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const rosterTier = document.getElementById('roster-tier');
   const rosterRole = document.getElementById('roster-role');
   const rosterMeta = document.getElementById('roster-meta');
- const rosterAvatar = document.getElementById('roster-avatar');
+  const rosterAvatar = document.getElementById('roster-avatar');
   const rosterKd = document.getElementById('roster-kd');
   const rosterLoadout = document.getElementById('roster-loadout');
   const rosterTwitch = document.getElementById('roster-twitch');
@@ -245,8 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="card" style="margin-bottom:12px;padding:16px;">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
           <div style="display:flex;align-items:center;gap:16px;">
-            <div style="width:40px;height:40px;background:var(--panel-alt);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--gold);">
-              ${escapeHtml(item.initials)}
+            <div style="width:40px;height:40px;background:var(--panel-alt);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--gold);overflow:hidden;">
+              ${item.avatar_url ? `<img src="${escapeHtml(item.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">` : escapeHtml(item.initials)}
             </div>
             <div>
               <h3 style="font-size:1.05rem;margin:0;">
@@ -270,13 +264,14 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const id = rosterId.value;
 
-       const payload = {
+    const payload = {
       id: id || `p${Date.now()}`,
       initials: rosterInitials.value.trim().toUpperCase(),
       name: rosterName.value.trim(),
       tier: rosterTier.value,
       role: rosterRole.value.trim(),
       meta: rosterMeta.value.trim(),
+      avatar_url: rosterAvatar.value.trim(),
       kd: rosterKd.value ? parseFloat(rosterKd.value) : null,
       loadout: rosterLoadout.value.trim(),
       twitch: rosterTwitch.value.trim(),
@@ -313,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rosterTier.value = item.tier || 'Member';
     rosterRole.value = item.role;
     rosterMeta.value = item.meta;
+    rosterAvatar.value = item.avatar_url || '';
     rosterKd.value = item.kd ?? '';
     rosterLoadout.value = item.loadout || '';
     rosterTwitch.value = item.twitch || '';
@@ -334,8 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- 3. Applicants Module ---
-  // Real columns: id, ign, rank, discord, notes, date
-  // (no name/role/device/exp fields exist on this table)
   const applicantList = document.getElementById('applicant-list');
 
   async function renderApplicants() {
@@ -482,7 +476,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- 5. Bracket Generator Module ---
-  // Purely client-side — not backed by the database, unchanged.
   const bracketTeamsInput = document.getElementById('bracket-teams');
   const bracketFormatSelect = document.getElementById('bracket-format');
   const bracketGenerateBtn = document.getElementById('bracket-generate');
@@ -521,7 +514,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function renderKnockoutBracket(teams, format) {
-    // Round up to nearest power of 2
     const size = Math.pow(2, Math.ceil(Math.log2(teams.length)));
     const paddedTeams = [...teams];
     while (paddedTeams.length < size) {
@@ -560,7 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       html += `</div>`;
 
-      // Next round placeholder calculation
       const nextCount = currentMatches.length / 2;
       currentMatches = [];
       for (let k = 0; k < nextCount; k++) {
@@ -592,7 +583,6 @@ document.addEventListener('DOMContentLoaded', () => {
     bracketOutput.innerHTML = html;
   }
 
-  // Helper function to prevent XSS injection in dynamic renders
   function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -603,6 +593,5 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#039;');
   }
 
-  // Initial authentication check on execution
   checkAuth();
 });
