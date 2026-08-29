@@ -52,6 +52,12 @@
     <div class="roster-modal-field">
       <div class="k">Details</div>
       <div class="v" id="modal-meta"></div>
+            <button class="btn btn-ghost view-profile-btn"
+          data-name="${escapeHtml(m.name)}"
+          data-tier="${escapeHtml(m.tier || 'Member')}"
+          data-role="${escapeHtml(m.role || '')}"
+          data-meta="${escapeHtml(m.meta || '')}"
+          data-initials="${escapeHtml(initials)}">
     </div>
   </div>
 </div>
@@ -161,7 +167,12 @@
           data-tier="${escapeHtml(m.tier || 'Member')}"
           data-role="${escapeHtml(m.role || '')}"
           data-meta="${escapeHtml(m.meta || '')}"
-          data-initials="${escapeHtml(initials)}">
+          data-initials="${escapeHtml(initials)}"
+          data-kd="${escapeHtml(m.kd != null ? Number(m.kd).toFixed(2) : '')}"
+          data-loadout="${escapeHtml(m.loadout || '')}"
+          data-twitch="${escapeHtml(m.twitch || '')}"
+          data-youtube="${escapeHtml(m.youtube || '')}"
+          data-x="${escapeHtml(m.x_handle || '')}">
           View Profile
         </button>
       </div>
@@ -237,13 +248,24 @@
   const overlay = document.getElementById('roster-modal-overlay');
   const modalClose = document.getElementById('roster-modal-close');
 
-  document.querySelectorAll('.view-profile-btn').forEach((btn) => {
+   document.querySelectorAll('.view-profile-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.getElementById('modal-avatar').textContent = btn.dataset.initials;
       document.getElementById('modal-name').textContent = btn.dataset.name;
       document.getElementById('modal-tier').textContent = btn.dataset.tier;
       document.getElementById('modal-role').textContent = btn.dataset.role || '—';
       document.getElementById('modal-meta').textContent = btn.dataset.meta || '—';
+      document.getElementById('modal-kd').textContent = btn.dataset.kd || '—';
+      document.getElementById('modal-loadout').textContent = btn.dataset.loadout || '—';
+
+      const links = [];
+      if (btn.dataset.twitch) links.push(`<a href="https://twitch.tv/${encodeURIComponent(btn.dataset.twitch)}" target="_blank" rel="noopener" class="btn btn-ghost">Twitch</a>`);
+      if (btn.dataset.youtube) links.push(`<a href="${btn.dataset.youtube.startsWith('http') ? btn.dataset.youtube : 'https://youtube.com/' + btn.dataset.youtube}" target="_blank" rel="noopener" class="btn btn-ghost">YouTube</a>`);
+      if (btn.dataset.x) links.push(`<a href="https://x.com/${encodeURIComponent(btn.dataset.x)}" target="_blank" rel="noopener" class="btn btn-ghost">X</a>`);
+      const socialsRow = document.getElementById('modal-socials-row');
+      document.getElementById('modal-socials').innerHTML = links.join(' ') || '—';
+      socialsRow.style.display = links.length ? '' : 'none';
+
       overlay.classList.add('open');
     });
   });
