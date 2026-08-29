@@ -216,6 +216,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const rosterTier = document.getElementById('roster-tier');
   const rosterRole = document.getElementById('roster-role');
   const rosterMeta = document.getElementById('roster-meta');
+  const rosterKd = document.getElementById('roster-kd');
+  const rosterLoadout = document.getElementById('roster-loadout');
+  const rosterTwitch = document.getElementById('roster-twitch');
+  const rosterYoutube = document.getElementById('roster-youtube');
+  const rosterX = document.getElementById('roster-x');
   const rosterCancel = document.getElementById('roster-cancel');
   const rosterList = document.getElementById('roster-list');
 
@@ -264,13 +269,18 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const id = rosterId.value;
 
-    const payload = {
+       const payload = {
       id: id || `p${Date.now()}`,
       initials: rosterInitials.value.trim().toUpperCase(),
       name: rosterName.value.trim(),
       tier: rosterTier.value,
       role: rosterRole.value.trim(),
-      meta: rosterMeta.value.trim()
+      meta: rosterMeta.value.trim(),
+      kd: rosterKd.value ? parseFloat(rosterKd.value) : null,
+      loadout: rosterLoadout.value.trim(),
+      twitch: rosterTwitch.value.trim(),
+      youtube: rosterYoutube.value.trim(),
+      x_handle: rosterX.value.trim()
     };
 
     try {
@@ -302,6 +312,11 @@ document.addEventListener('DOMContentLoaded', () => {
     rosterTier.value = item.tier || 'Member';
     rosterRole.value = item.role;
     rosterMeta.value = item.meta;
+    rosterKd.value = item.kd ?? '';
+    rosterLoadout.value = item.loadout || '';
+    rosterTwitch.value = item.twitch || '';
+    rosterYoutube.value = item.youtube || '';
+    rosterX.value = item.x_handle || '';
     rosterCancel.style.display = 'inline-block';
     window.scrollTo({ top: rosterForm.offsetTop - 80, behavior: 'smooth' });
   };
