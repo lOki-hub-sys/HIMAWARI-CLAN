@@ -1,18 +1,19 @@
-SELECT 
-  id,
-  username,
-  role,
-  avatar_url,
-  joined_at,
-  -- Calculates if joined within the last 14 days (1 = true, 0 = false)
-  (julianday('now') - julianday(joined_at) <= 14) AS is_new
-FROM roster_members
-ORDER BY 
-  CASE role
-    WHEN 'Leader'  THEN 1
-    WHEN 'Admin'   THEN 2
-    WHEN 'Officer' THEN 3
-    WHEN 'Member'  THEN 4
-    ELSE 5
-  END ASC,
-  username ASC;
+export async function onRequestGet(context) {
+    try {
+        const { results } = await context.env.DB.prepare(
+            "SELECT * FROM roster_members"
+        ).all();
+
+        return new Response(JSON.stringify(results), {
+            headers: {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            }
+        });
+    } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+}
