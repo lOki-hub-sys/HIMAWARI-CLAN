@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const applicantBadge = document.getElementById('applicant-count-badge');
 
   const DEMO_USER = 'admin';
-  const DEMO_PASS = 'admin123';
+  const DEMO_PASS = 'himawar2026';
 
   // --- Auth Flow ---
   function checkAuth() {
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loginPass.value = '';
       checkAuth();
     } else {
-      loginError.textContent = 'Invalid credentials. Use admin / admin123 for demo.';
+      loginError.textContent = 'Invalid credentials. Please check your username and password.';
     }
   });
 
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applicantList.innerHTML = list.map((item) => `
       <div class="card" style="margin-bottom:14px;padding:20px;">
-        <div style="display:flex;justify-space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
           <div>
             <span class="eyebrow">${item.date || 'Recent'}</span>
             <h3 style="font-size:1.2rem;margin:4px 0 2px;">${escapeHtml(item.ign)}</h3>
