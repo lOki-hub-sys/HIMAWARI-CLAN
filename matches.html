@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matches — Himawari Clan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="matches">
+<nav class="site-nav">
+  <a href="index.html" class="brand"><span class="emblem"></span> Himawari</a>
+  <div class="nav-links">
+    <a href="index.html" data-page="home">Home</a>
+    <a href="roster.html" data-page="roster">Roster</a>
+    <a href="matches.html" data-page="matches">Matches</a>
+    <a href="gallery.html" data-page="gallery">Gallery</a>
+    <a href="join.html" data-page="join">Join</a>
+    <a href="admin.html" data-page="admin">Admin</a>
+  </div>
+  <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+</nav>
+
+<header class="hero" style="padding-bottom:40px;">
+  <div class="container">
+    <span class="eyebrow">Competitive</span>
+    <h1 style="font-size:clamp(2rem,5vw,3.2rem);margin-top:12px;">Matches</h1>
+    <p class="lede" style="margin-top:14px;">Recent results and what's on the calendar next.</p>
+  </div>
+</header>
+
+<section class="container" style="padding-bottom:60px;">
+  <h3 style="font-size:1.1rem;margin-bottom:14px;">Upcoming</h3>
+  <div id="upcoming-list" class="grid grid-2" style="margin-bottom:48px;"></div>
+
+  <h3 style="font-size:1.1rem;margin-bottom:14px;">Results</h3>
+  <div id="results-list" class="grid grid-2"></div>
+</section>
+
+<footer class="site-footer">
+  <span>© 2026 Himawari Clan</span>
+  <span>Managed via the clan admin panel</span>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+(async () => {
+  const upcomingEl = document.getElementById('upcoming-list');
+  const resultsEl = document.getElementById('results-list');
+  let matches = [];
+  try {
+    matches = await apiList('matches');
+  } catch (e) {
+    upcomingEl.innerHTML = resultsEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load matches right now.</p>';
+    return;
+  }
+
+  function countdown(dateStr) {
+    const diff = new Date(dateStr) - new Date();
+    if (diff <= 0) return 'Today';
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    return days > 0 ? `in ${days}d ${hours}h` : `in ${hours}h`;
+  }
+
+  const upcoming = matches.filter(m => m.status === 'upcoming').sort((a,b) => new Date(a.event_date) - new Date(b.event_date));
+  const results = matches.filter(m => m.status === 'result').sort((a,b) => new Date(b.event_date) - new Date(a.event_date));
+
+  upcomingEl.innerHTML = upcoming.length ? upcoming.map(m => `
+    <div class="card reveal">
+      <span class="eyebrow">${new Date(m.event_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} · ${countdown(m.event_date)}</span>
+      <h3 style="margin-top:8px;">vs ${m.opponent}</h3>
+      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem;">${m.event || 'Scrim'}</p>
+    </div>
+  `).join('') : '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Nothing scheduled yet.</p>';
+
+  resultsEl.innerHTML = results.length ? results.map(m => {
+    const won = m.score_for > m.score_against;
+    return `
+    <div class="card reveal">
+      <span class="eyebrow" style="color:${won ? '#7ee787' : '#ff6b6b'};">${won ? 'WIN' : 'LOSS'} · ${new Date(m.event_date).toLocaleDateString()}</span>
+      <h3 style="margin-top:8px;">vs ${m.opponent} — ${m.score_for}–${m.score_against}</h3>
+      <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem;">${m.event || 'Scrim'}</p>
+      ${m.vod_url ? `<a href="${m.vod_url}" target="_blank" rel="noopener" class="btn btn-ghost" style="margin-top:10px;">Watch VOD</a>` : ''}
+    </div>
+  `; }).join('') : '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No results logged yet.</p>';
+})();
+</script>
+</body>
+</html>
