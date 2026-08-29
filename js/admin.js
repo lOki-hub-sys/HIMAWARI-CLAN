@@ -2,13 +2,9 @@
    HIMAWARI CLAN — Admin Control Room Script (admin.js)
    Handles demo authentication, tab navigation, applicant management,
    announcements, roster updates, tournaments, and bracket generation.
-
-   Data for announcements / roster / tournaments / applicants is read from
-   and written to the live D1-backed API (/api/<table>).
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Check if we are on the admin page
   if (document.body.dataset.page !== 'admin') return;
 
   // --- API Helpers ---
@@ -34,6 +30,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return res.json();
   }
 
+  // --- Helper: File to Base64 ---
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      if (!file) return resolve('');
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  }
+
   // --- DOM Elements ---
   const loginGate = document.getElementById('login-gate');
   const loginBtn = document.getElementById('login-btn');
@@ -48,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const panels = document.querySelectorAll('.admin-panel');
   const applicantBadge = document.getElementById('applicant-count-badge');
 
-  // Simple client-side hash verification for demo auth (admin / admin123)
   const DEMO_USER = 'admin';
   const DEMO_PASS = 'admin123';
 
@@ -100,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // --- Master Render Function ---
   function renderAllPanels() {
     renderAnnouncements();
     renderRoster();
@@ -263,6 +268,15 @@ document.addEventListener('DOMContentLoaded', () => {
   rosterForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = rosterId.value;
+    const avatarFile = rosterAvatar.files[0];
+
+    let avatarDataUrl = '';
+    if (avatarFile) {
+      avatarDataUrl = await fileToBase64(avatarFile);
+    } else if (id) {
+      const existing = cachedRoster.find((i) => i.id === id);
+      if (existing) avatarDataUrl = existing.avatar_url || '';
+    }
 
     const payload = {
       id: id || `p${Date.now()}`,
@@ -271,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tier: rosterTier.value,
       role: rosterRole.value.trim(),
       meta: rosterMeta.value.trim(),
-      avatar_url: rosterAvatar.value.trim(),
+      avatar_url: avatarDataUrl,
       kd: rosterKd.value ? parseFloat(rosterKd.value) : null,
       loadout: rosterLoadout.value.trim(),
       twitch: rosterTwitch.value.trim(),
@@ -308,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rosterTier.value = item.tier || 'Member';
     rosterRole.value = item.role;
     rosterMeta.value = item.meta;
-    rosterAvatar.value = item.avatar_url || '';
+    rosterAvatar.value = '';
     rosterKd.value = item.kd ?? '';
     rosterLoadout.value = item.loadout || '';
     rosterTwitch.value = item.twitch || '';
@@ -351,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applicantList.innerHTML = list.map((item) => `
       <div class="card" style="margin-bottom:14px;padding:20px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
+        <div style="display:flex;justify-space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
           <div>
             <span class="eyebrow">${item.date || 'Recent'}</span>
             <h3 style="font-size:1.2rem;margin:4px 0 2px;">${escapeHtml(item.ign)}</h3>
