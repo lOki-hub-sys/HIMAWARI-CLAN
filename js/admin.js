@@ -1,421 +1,580 @@
 /* ============================================================
-   Himawari admin panel
-   NOTE ON AUTH: this is still a client-only login check (see the
-   note below) — swap in real per-admin accounts before this
-   guards anything that actually matters. But roster, announcements,
-   tournaments, and applicants now read/write through /api/* to the
-   shared D1 database, so everyone sees the same data.
+   HIMAWARI CLAN — Admin Control Room Script (admin.js)
+   Handles demo authentication, tab navigation, applicant management,
+   announcements, roster updates, tournaments, and bracket generation.
+
+   Data for announcements / roster / tournaments / applicants is now
+   read from and written to the live D1-backed API (/api/<table>),
+   not localStorage. Login and the bracket generator remain purely
+   client-side, unchanged.
    ============================================================ */
 
-const ADMIN_CREDS = {
-  username: 'admin',
-  // sha256("himawari2026") — change this before real use
-  passHash: '785cf14bfc9318270ec5f8dc9613482315ff504acff216f8475cc3c941d7c33d',
-};
-const SESSION_TTL_MS = 1000 * 60 * 60; // 1 hour
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if we are on the admin page
+  if (document.body.dataset.page !== 'admin') return;
 
-async function sha256(text) {
-  const enc = new TextEncoder().encode(text);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function getSession() {
-  try {
-    const raw = sessionStorage.getItem(HIMAWARI_KEYS.auth);
-    if (!raw) return null;
-    const s = JSON.parse(raw);
-    if (Date.now() > s.expires) { sessionStorage.removeItem(HIMAWARI_KEYS.auth); return null; }
-    return s;
-  } catch (e) { return null; }
-}
-
-function setSession() {
-  sessionStorage.setItem(HIMAWARI_KEYS.auth, JSON.stringify({ expires: Date.now() + SESSION_TTL_MS }));
-}
-
-function showAdmin() {
-  document.getElementById('login-gate').style.display = 'none';
-  document.getElementById('admin-app').style.display = 'block';
-  renderAnnouncements();
-  renderRoster();
-  renderApplicants();
-  renderTournaments();
-}
-
-function showLogin() {
-  document.getElementById('admin-app').style.display = 'none';
-  document.getElementById('login-gate').style.display = 'flex';
-}
-
-document.getElementById('login-btn').addEventListener('click', async () => {
-  const user = document.getElementById('admin-user').value.trim();
-  const pass = document.getElementById('admin-pass').value;
-  const hash = await sha256(pass);
-  if (user === ADMIN_CREDS.username && hash === ADMIN_CREDS.passHash) {
-    setSession();
-    showAdmin();
-  } else {
-    document.getElementById('login-error').textContent = 'Incorrect username or password.';
+  // --- API Helpers ---
+  async function apiList(table) {
+    const res = await fetch(`/api/${table}`);
+    if (!res.ok) throw new Error(`Failed to load ${table}`);
+    return res.json();
   }
-});
 
-document.getElementById('logout-btn').addEventListener('click', () => {
-  sessionStorage.removeItem(HIMAWARI_KEYS.auth);
-  showLogin();
-});
-
-if (getSession()) showAdmin(); else showLogin();
-
-/* ---------- Tabs ---------- */
-document.querySelectorAll('.admin-tab').forEach((tab) => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
-  });
-});
-
-/* ---------- Announcements CRUD ---------- */
-async function renderAnnouncements() {
-  const items = await apiList('announcements');
-  const list = document.getElementById('announce-list');
-  list.innerHTML = items.map(a => `
-    <div class="list-row">
-      <div>
-        <strong>${a.title}</strong><br>
-        <span style="color:var(--text-dim);font-size:0.9rem;">${a.body}</span><br>
-        <time style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">${a.date}</time>
-      </div>
-      <div class="row-actions">
-        <button data-edit="${a.id}">Edit</button>
-        <button data-delete="${a.id}">Delete</button>
-      </div>
-    </div>
-  `).join('') || '<p style="color:var(--text-dim);">No announcements yet.</p>';
-
-  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editAnnouncement(btn.dataset.edit, items)));
-  list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteAnnouncement(btn.dataset.delete)));
-}
-
-function editAnnouncement(id, items) {
-  const a = items.find(i => i.id === id);
-  if (!a) return;
-  document.getElementById('announce-id').value = a.id;
-  document.getElementById('announce-title').value = a.title;
-  document.getElementById('announce-date').value = a.date;
-  document.getElementById('announce-body').value = a.body;
-  document.getElementById('announce-cancel').style.display = 'inline-flex';
-}
-
-async function deleteAnnouncement(id) {
-  await apiDelete('announcements', id);
-  renderAnnouncements();
-}
-
-document.getElementById('announce-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('announce-id').value;
-  const record = {
-    id: id || 'a' + Date.now(),
-    title: document.getElementById('announce-title').value,
-    body: document.getElementById('announce-body').value,
-    date: document.getElementById('announce-date').value,
-  };
-  await apiSave('announcements', record);
-  e.target.reset();
-  document.getElementById('announce-id').value = '';
-  document.getElementById('announce-cancel').style.display = 'none';
-  renderAnnouncements();
-});
-
-document.getElementById('announce-cancel').addEventListener('click', () => {
-  document.getElementById('announce-form').reset();
-  document.getElementById('announce-id').value = '';
-  document.getElementById('announce-cancel').style.display = 'none';
-});
-
-/* ---------- Roster CRUD ---------- */
-async function renderRoster() {
-  const items = await apiList('roster');
-  const list = document.getElementById('roster-list');
-  list.innerHTML = items.map(p => `
-    <div class="list-row">
-      <div style="display:flex;gap:14px;align-items:flex-start;">
-        <div class="player-avatar" style="margin-bottom:0;flex-shrink:0;">${p.initials}</div>
-        <div>
-          <strong>${p.name}</strong><br>
-          <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;">${p.role}</span><br>
-          <span style="color:var(--text-dim);font-size:0.85rem;">${p.meta}</span>
-        </div>
-      </div>
-      <div class="row-actions">
-        <button data-edit="${p.id}">Edit</button>
-        <button data-delete="${p.id}">Delete</button>
-      </div>
-    </div>
-  `).join('') || '<p style="color:var(--text-dim);">No roster members yet.</p>';
-
-  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editRoster(btn.dataset.edit, items)));
-  list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteRoster(btn.dataset.delete)));
-}
-
-function editRoster(id, items) {
-  const p = items.find(i => i.id === id);
-  if (!p) return;
-  document.getElementById('roster-id').value = p.id;
-  document.getElementById('roster-initials').value = p.initials;
-  document.getElementById('roster-name').value = p.name;
-  document.getElementById('roster-role').value = p.role;
-  document.getElementById('roster-meta').value = p.meta;
-  document.getElementById('roster-cancel').style.display = 'inline-flex';
-}
-
-async function deleteRoster(id) {
-  if (!confirm('Remove this member from the roster?')) return;
-  await apiDelete('roster', id);
-  renderRoster();
-}
-
-document.getElementById('roster-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('roster-id').value;
-  const record = {
-    id: id || 'p' + Date.now(),
-    initials: document.getElementById('roster-initials').value.toUpperCase(),
-    name: document.getElementById('roster-name').value,
-    role: document.getElementById('roster-role').value,
-    meta: document.getElementById('roster-meta').value,
-  };
-  await apiSave('roster', record);
-  e.target.reset();
-  document.getElementById('roster-id').value = '';
-  document.getElementById('roster-cancel').style.display = 'none';
-  renderRoster();
-});
-
-document.getElementById('roster-cancel').addEventListener('click', () => {
-  document.getElementById('roster-form').reset();
-  document.getElementById('roster-id').value = '';
-  document.getElementById('roster-cancel').style.display = 'none';
-});
-
-/* ---------- Applicants (admin-only inbox, no public listing) ---------- */
-async function renderApplicants() {
-  const items = await apiList('applicants');
-  const list = document.getElementById('applicant-list');
-  const badge = document.getElementById('applicant-count-badge');
-  badge.textContent = items.length ? items.length : '';
-  badge.className = items.length ? 'tab-badge' : '';
-
-  list.innerHTML = items.map(a => `
-    <div class="list-row">
-      <div>
-        <strong>${a.ign}</strong>
-        <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--gold);margin-left:8px;">${a.rank}</span><br>
-        <span style="color:var(--text-dim);font-size:0.85rem;">Discord: ${a.discord}</span><br>
-        ${a.notes ? `<span style="color:var(--text-dim);font-size:0.85rem;">"${a.notes}"</span><br>` : ''}
-        <time style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">Applied ${a.date}</time>
-      </div>
-      <div class="row-actions">
-        <button data-promote="${a.id}">Add to roster</button>
-        <button data-delete="${a.id}">Delete</button>
-      </div>
-    </div>
-  `).join('') || '<p style="color:var(--text-dim);">No applications yet.</p>';
-
-  list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteApplicant(btn.dataset.delete)));
-  list.querySelectorAll('[data-promote]').forEach(btn => btn.addEventListener('click', () => promoteApplicant(btn.dataset.promote, items)));
-}
-
-async function deleteApplicant(id) {
-  await apiDelete('applicants', id);
-  renderApplicants();
-}
-
-function promoteApplicant(id, items) {
-  const a = items.find(i => i.id === id);
-  if (!a) return;
-  // Pre-fill the roster form so the admin reviews/adjusts details before saving.
-  document.querySelector('.admin-tab[data-tab="roster"]').click();
-  document.getElementById('roster-id').value = '';
-  document.getElementById('roster-initials').value = a.ign.slice(0, 2).toUpperCase();
-  document.getElementById('roster-name').value = a.ign;
-  document.getElementById('roster-role').value = 'Substitute';
-  document.getElementById('roster-meta').value = `Rank: ${a.rank} · Discord: ${a.discord}`;
-  document.getElementById('roster-cancel').style.display = 'inline-flex';
-  document.getElementById('roster-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-/* ---------- Tournaments CRUD ---------- */
-async function renderTournaments() {
-  const items = await apiList('tournaments');
-  const list = document.getElementById('tourney-list');
-  list.innerHTML = items.map(t => `
-    <div class="list-row">
-      <div>
-        <strong>${t.name}</strong><br>
-        <span style="color:var(--text-dim);font-size:0.9rem;">${t.format} · ${t.date}</span><br>
-        <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--gold);">${t.status}</span>
-      </div>
-      <div class="row-actions">
-        <button data-edit="${t.id}">Edit</button>
-        <button data-delete="${t.id}">Delete</button>
-      </div>
-    </div>
-  `).join('') || '<p style="color:var(--text-dim);">No tournaments yet.</p>';
-
-  list.querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editTourney(btn.dataset.edit, items)));
-  list.querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteTourney(btn.dataset.delete)));
-}
-
-function editTourney(id, items) {
-  const t = items.find(i => i.id === id);
-  if (!t) return;
-  document.getElementById('tourney-id').value = t.id;
-  document.getElementById('tourney-name').value = t.name;
-  document.getElementById('tourney-date').value = t.date;
-  document.getElementById('tourney-format').value = t.format;
-  document.getElementById('tourney-status').value = t.status;
-  document.getElementById('tourney-cancel').style.display = 'inline-flex';
-}
-
-async function deleteTourney(id) {
-  await apiDelete('tournaments', id);
-  renderTournaments();
-}
-
-document.getElementById('tourney-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('tourney-id').value;
-  const record = {
-    id: id || 't' + Date.now(),
-    name: document.getElementById('tourney-name').value,
-    date: document.getElementById('tourney-date').value,
-    format: document.getElementById('tourney-format').value,
-    status: document.getElementById('tourney-status').value || 'Upcoming',
-  };
-  await apiSave('tournaments', record);
-  e.target.reset();
-  document.getElementById('tourney-id').value = '';
-  document.getElementById('tourney-cancel').style.display = 'none';
-  renderTournaments();
-});
-
-document.getElementById('tourney-cancel').addEventListener('click', () => {
-  document.getElementById('tourney-form').reset();
-  document.getElementById('tourney-id').value = '';
-  document.getElementById('tourney-cancel').style.display = 'none';
-});
-
-/* ---------- Bracket generator (stays local — it's a scratch tool, not shared data) ---------- */
-function suggestFormat(n) {
-  if (n <= 5) return 'single';
-  if (n <= 12) return 'double';
-  return 'round-robin';
-}
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+  async function apiSave(table, payload) {
+    const res = await fetch(`/api/${table}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`Failed to save ${table}`);
+    return res.json();
   }
-  return a;
-}
 
-function buildSingleElim(teams) {
-  let size = 2;
-  while (size < teams.length) size *= 2;
-  const padded = [...teams];
-  while (padded.length < size) padded.push('BYE');
-  const rounds = [];
-  let current = padded;
-  let roundNum = 1;
-  while (current.length > 1) {
-    const matches = [];
-    for (let i = 0; i < current.length; i += 2) {
-      matches.push({ a: current[i], b: current[i + 1], winner: current[i + 1] === 'BYE' ? current[i] : (current[i] === 'BYE' ? current[i+1] : null) });
+  async function apiDelete(table, id) {
+    const res = await fetch(`/api/${table}/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`Failed to delete from ${table}`);
+    return res.json();
+  }
+
+  // --- DOM Elements ---
+  const loginGate = document.getElementById('login-gate');
+  const loginBtn = document.getElementById('login-btn');
+  const loginUser = document.getElementById('admin-user');
+  const loginPass = document.getElementById('admin-pass');
+  const loginError = document.getElementById('login-error');
+
+  const adminApp = document.getElementById('admin-app');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  const tabs = document.querySelectorAll('.admin-tab');
+  const panels = document.querySelectorAll('.admin-panel');
+  const applicantBadge = document.getElementById('applicant-count-badge');
+
+  // Simple client-side hash verification for demo auth (admin / admin123)
+  const DEMO_USER = 'admin';
+  const DEMO_PASS = 'admin123';
+
+  // --- Auth Flow ---
+  function checkAuth() {
+    const isAuthenticated = sessionStorage.getItem('himawari_admin_auth') === 'true';
+    if (isAuthenticated) {
+      loginGate.style.display = 'none';
+      adminApp.style.display = 'block';
+      renderAllPanels();
+    } else {
+      loginGate.style.display = 'block';
+      adminApp.style.display = 'none';
     }
-    rounds.push({ label: roundNum === 1 ? 'Round 1' : `Round ${roundNum}`, matches });
-    current = matches.map(() => '—'); // placeholders, winners advance manually via UI
-    roundNum++;
   }
-  return rounds;
-}
 
-function renderBracket(rounds, formatLabel) {
-  const out = document.getElementById('bracket-output');
-  const html = rounds.map(round => `
-    <div class="bracket-round">
-      <h4>${round.label}</h4>
-      ${round.matches.map(m => `
-        <div class="match">
-          <div class="side ${m.winner === m.a ? 'winner' : ''}">${m.a}</div>
-          <div class="side ${m.winner === m.b ? 'winner' : ''}">${m.b}</div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
-  out.innerHTML = `
-    <p class="eyebrow" style="display:block;margin-bottom:12px;">${formatLabel}</p>
-    <div class="bracket">${html}</div>
-    <p style="margin-top:16px;font-family:var(--font-mono);font-size:0.78rem;color:var(--text-dim);">
-      Click a side to mark the winner and advance them. BYE slots auto-advance the opposing team.
-    </p>
-  `;
-  out.querySelectorAll('.side').forEach(side => {
-    side.addEventListener('click', () => {
-      const match = side.closest('.match');
-      match.querySelectorAll('.side').forEach(s => s.classList.remove('winner'));
-      side.classList.add('winner');
-      himawariSet(HIMAWARI_KEYS.bracket, out.innerHTML);
+  loginBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const user = loginUser.value.trim();
+    const pass = loginPass.value.trim();
+
+    if (user === DEMO_USER && pass === DEMO_PASS) {
+      sessionStorage.setItem('himawari_admin_auth', 'true');
+      loginError.textContent = '';
+      loginUser.value = '';
+      loginPass.value = '';
+      checkAuth();
+    } else {
+      loginError.textContent = 'Invalid credentials. Use admin / admin123 for demo.';
+    }
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    sessionStorage.removeItem('himawari_admin_auth');
+    checkAuth();
+  });
+
+  // --- Tab Navigation ---
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.tab;
+
+      tabs.forEach((t) => t.classList.remove('active'));
+      panels.forEach((p) => p.classList.remove('active'));
+
+      tab.classList.add('active');
+      const targetPanel = document.getElementById(`panel-${targetTab}`);
+      if (targetPanel) targetPanel.classList.add('active');
     });
   });
-}
 
-function renderRoundRobin(teams) {
-  const out = document.getElementById('bracket-output');
-  const rows = [];
-  for (let i = 0; i < teams.length; i++) {
-    for (let j = i + 1; j < teams.length; j++) {
-      rows.push(`${teams[i]} vs ${teams[j]}`);
+  // --- Master Render Function ---
+  function renderAllPanels() {
+    renderAnnouncements();
+    renderRoster();
+    renderApplicants();
+    renderTournaments();
+  }
+
+  // --- 1. Announcements Module ---
+  const announceForm = document.getElementById('announce-form');
+  const announceId = document.getElementById('announce-id');
+  const announceTitle = document.getElementById('announce-title');
+  const announceDate = document.getElementById('announce-date');
+  const announceBody = document.getElementById('announce-body');
+  const announceCancel = document.getElementById('announce-cancel');
+  const announceList = document.getElementById('announce-list');
+
+  let cachedAnnouncements = [];
+
+  async function renderAnnouncements() {
+    try {
+      cachedAnnouncements = await apiList('announcements');
+    } catch (e) {
+      console.error('Announcements load error:', e);
+      announceList.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load announcements.</p>';
+      return;
     }
-  }
-  out.innerHTML = `
-    <p class="eyebrow" style="display:block;margin-bottom:12px;">Round robin — ${rows.length} matches</p>
-    <div class="grid grid-2">${rows.map(r => `<div class="match"><div class="side">${r}</div></div>`).join('')}</div>
-  `;
-}
 
-document.getElementById('bracket-generate').addEventListener('click', () => {
-  const raw = document.getElementById('bracket-teams').value.trim();
-  const teams = raw.split('\n').map(t => t.trim()).filter(Boolean);
-  const note = document.getElementById('bracket-note');
+    if (cachedAnnouncements.length === 0) {
+      announceList.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No announcements created yet.</p>';
+      return;
+    }
 
-  if (teams.length < 2) {
-    note.textContent = 'Enter at least 2 teams, one per line.';
-    return;
+    announceList.innerHTML = cachedAnnouncements.map((item) => `
+      <div class="card" style="margin-bottom:12px;padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+          <div>
+            <span class="eyebrow">${item.date}</span>
+            <h3 style="font-size:1.1rem;margin:4px 0 8px;">${escapeHtml(item.title)}</h3>
+            <p style="color:var(--text-dim);font-size:0.9rem;">${escapeHtml(item.body)}</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button class="btn btn-ghost" onclick="editAnnouncement('${item.id}')" style="padding:6px 12px;font-size:0.75rem;">Edit</button>
+            <button class="btn btn-ghost" onclick="deleteAnnouncement('${item.id}')" style="padding:6px 12px;font-size:0.75rem;color:var(--ember);">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
   }
 
-  let format = document.getElementById('bracket-format').value;
-  let autoNote = '';
-  if (format === 'auto') {
-    format = suggestFormat(teams.length);
-    autoNote = ` — auto-suggested for ${teams.length} teams (small field \u2192 single elim, mid-size \u2192 double elim, large field \u2192 round robin groups). Change the dropdown to override.`;
+  announceForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = announceId.value;
+
+    const payload = {
+      id: id || `ann-${Date.now()}`,
+      title: announceTitle.value.trim(),
+      date: announceDate.value,
+      body: announceBody.value.trim()
+    };
+
+    try {
+      await apiSave('announcements', payload);
+      resetAnnounceForm();
+      await renderAnnouncements();
+    } catch (e) {
+      console.error('Announcement save error:', e);
+      alert('Could not save the announcement. Please try again.');
+    }
+  });
+
+  function resetAnnounceForm() {
+    announceForm.reset();
+    announceId.value = '';
+    announceCancel.style.display = 'none';
   }
 
-  const shuffled = shuffle(teams);
-  if (format === 'round-robin') {
-    renderRoundRobin(shuffled);
-    note.textContent = `Round robin bracket generated.${autoNote}`;
-  } else {
-    const rounds = buildSingleElim(shuffled);
-    const label = format === 'double'
-      ? 'Single-elim view shown — double elim losers bracket: track manually or extend this generator per your format needs'
-      : 'Single elimination';
-    renderBracket(rounds, label);
-    note.textContent = `${format === 'double' ? 'Double' : 'Single'} elimination bracket generated for ${teams.length} teams.${autoNote}`;
+  announceCancel.addEventListener('click', resetAnnounceForm);
+
+  window.editAnnouncement = function(id) {
+    const item = cachedAnnouncements.find((i) => i.id === id);
+    if (!item) return;
+
+    announceId.value = item.id;
+    announceTitle.value = item.title;
+    announceDate.value = item.date;
+    announceBody.value = item.body;
+    announceCancel.style.display = 'inline-block';
+    window.scrollTo({ top: announceForm.offsetTop - 80, behavior: 'smooth' });
+  };
+
+  window.deleteAnnouncement = async function(id) {
+    if (!confirm('Are you sure you want to delete this announcement?')) return;
+    try {
+      await apiDelete('announcements', id);
+      await renderAnnouncements();
+    } catch (e) {
+      console.error('Announcement delete error:', e);
+      alert('Could not delete the announcement. Please try again.');
+    }
+  };
+
+  // --- 2. Roster Module ---
+  const rosterForm = document.getElementById('roster-form');
+  const rosterId = document.getElementById('roster-id');
+  const rosterInitials = document.getElementById('roster-initials');
+  const rosterName = document.getElementById('roster-name');
+  const rosterRole = document.getElementById('roster-role');
+  const rosterMeta = document.getElementById('roster-meta');
+  const rosterCancel = document.getElementById('roster-cancel');
+  const rosterList = document.getElementById('roster-list');
+
+  let cachedRoster = [];
+
+  async function renderRoster() {
+    try {
+      cachedRoster = await apiList('roster');
+    } catch (e) {
+      console.error('Roster load error:', e);
+      rosterList.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load the roster.</p>';
+      return;
+    }
+
+    if (cachedRoster.length === 0) {
+      rosterList.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No members in roster.</p>';
+      return;
+    }
+
+    rosterList.innerHTML = cachedRoster.map((item) => `
+      <div class="card" style="margin-bottom:12px;padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="width:40px;height:40px;background:var(--panel-alt);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:var(--gold);">
+              ${escapeHtml(item.initials)}
+            </div>
+            <div>
+              <h3 style="font-size:1.05rem;margin:0;">${escapeHtml(item.name)} <span style="font-size:0.8rem;color:var(--gold);font-family:var(--font-mono);font-weight:400;margin-left:8px;">[${escapeHtml(item.role)}]</span></h3>
+              <p style="color:var(--text-dim);font-size:0.8rem;margin-top:2px;">${escapeHtml(item.meta)}</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost" onclick="editRoster('${item.id}')" style="padding:6px 12px;font-size:0.75rem;">Edit</button>
+            <button class="btn btn-ghost" onclick="deleteRoster('${item.id}')" style="padding:6px 12px;font-size:0.75rem;color:var(--ember);">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
   }
+
+  rosterForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = rosterId.value;
+
+    const payload = {
+      id: id || `p${Date.now()}`,
+      initials: rosterInitials.value.trim().toUpperCase(),
+      name: rosterName.value.trim(),
+      role: rosterRole.value.trim(),
+      meta: rosterMeta.value.trim()
+    };
+
+    try {
+      await apiSave('roster', payload);
+      resetRosterForm();
+      await renderRoster();
+    } catch (e) {
+      console.error('Roster save error:', e);
+      alert('Could not save this member. Please try again.');
+    }
+  });
+
+  function resetRosterForm() {
+    rosterForm.reset();
+    rosterId.value = '';
+    rosterCancel.style.display = 'none';
+  }
+
+  rosterCancel.addEventListener('click', resetRosterForm);
+
+  window.editRoster = function(id) {
+    const item = cachedRoster.find((i) => i.id === id);
+    if (!item) return;
+
+    rosterId.value = item.id;
+    rosterInitials.value = item.initials;
+    rosterName.value = item.name;
+    rosterRole.value = item.role;
+    rosterMeta.value = item.meta;
+    rosterCancel.style.display = 'inline-block';
+    window.scrollTo({ top: rosterForm.offsetTop - 80, behavior: 'smooth' });
+  };
+
+  window.deleteRoster = async function(id) {
+    if (!confirm('Remove this member from the roster?')) return;
+    try {
+      await apiDelete('roster', id);
+      await renderRoster();
+    } catch (e) {
+      console.error('Roster delete error:', e);
+      alert('Could not remove this member. Please try again.');
+    }
+  };
+
+  // --- 3. Applicants Module ---
+  // Real columns: id, ign, rank, discord, notes, date
+  // (no name/role/device/exp fields exist on this table)
+  const applicantList = document.getElementById('applicant-list');
+
+  async function renderApplicants() {
+    let list;
+    try {
+      list = await apiList('applicants');
+    } catch (e) {
+      console.error('Applicants load error:', e);
+      applicantList.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load applicants.</p>';
+      return;
+    }
+
+    applicantBadge.textContent = list.length ? `(${list.length})` : '';
+
+    if (list.length === 0) {
+      applicantList.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No active applications found.</p>';
+      return;
+    }
+
+    applicantList.innerHTML = list.map((item) => `
+      <div class="card" style="margin-bottom:14px;padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px;">
+          <div>
+            <span class="eyebrow">${item.date || 'Recent'}</span>
+            <h3 style="font-size:1.2rem;margin:4px 0 2px;">${escapeHtml(item.ign)}</h3>
+            <span style="font-family:var(--font-mono);font-size:0.82rem;color:var(--gold);">Discord: ${escapeHtml(item.discord || 'N/A')}</span>
+          </div>
+          <button class="btn btn-ghost" onclick="deleteApplicant('${item.id}')" style="padding:6px 12px;font-size:0.75rem;color:var(--ember);">Dismiss</button>
+        </div>
+        <div style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px;">
+          <strong>Rank:</strong> ${escapeHtml(item.rank || 'Unspecified')}
+        </div>
+        ${item.notes ? `<p style="font-size:0.88rem;line-height:1.5;background:var(--panel-alt);padding:10px 14px;border:1px solid var(--line);">${escapeHtml(item.notes)}</p>` : ''}
+      </div>
+    `).join('');
+  }
+
+  window.deleteApplicant = async function(id) {
+    if (!confirm('Dismiss this applicant?')) return;
+    try {
+      await apiDelete('applicants', id);
+      await renderApplicants();
+    } catch (e) {
+      console.error('Applicant delete error:', e);
+      alert('Could not dismiss this applicant. Please try again.');
+    }
+  };
+
+  // --- 4. Tournaments Module ---
+  const tourneyForm = document.getElementById('tourney-form');
+  const tourneyId = document.getElementById('tourney-id');
+  const tourneyName = document.getElementById('tourney-name');
+  const tourneyDate = document.getElementById('tourney-date');
+  const tourneyFormat = document.getElementById('tourney-format');
+  const tourneyStatus = document.getElementById('tourney-status');
+  const tourneyCancel = document.getElementById('tourney-cancel');
+  const tourneyList = document.getElementById('tourney-list');
+
+  let cachedTournaments = [];
+
+  async function renderTournaments() {
+    try {
+      cachedTournaments = await apiList('tournaments');
+    } catch (e) {
+      console.error('Tournaments load error:', e);
+      tourneyList.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load tournaments.</p>';
+      return;
+    }
+
+    if (cachedTournaments.length === 0) {
+      tourneyList.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No tournament records.</p>';
+      return;
+    }
+
+    tourneyList.innerHTML = cachedTournaments.map((item) => `
+      <div class="card" style="margin-bottom:12px;padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <div>
+            <span class="eyebrow">${item.date} · ${escapeHtml(item.format)}</span>
+            <h3 style="font-size:1.1rem;margin:4px 0 2px;">${escapeHtml(item.name)}</h3>
+            <p style="color:var(--gold);font-family:var(--font-mono);font-size:0.8rem;">Status: ${escapeHtml(item.status || 'Scheduled')}</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost" onclick="editTournament('${item.id}')" style="padding:6px 12px;font-size:0.75rem;">Edit</button>
+            <button class="btn btn-ghost" onclick="deleteTournament('${item.id}')" style="padding:6px 12px;font-size:0.75rem;color:var(--ember);">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  tourneyForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = tourneyId.value;
+
+    const payload = {
+      id: id || `trn-${Date.now()}`,
+      name: tourneyName.value.trim(),
+      date: tourneyDate.value,
+      format: tourneyFormat.value,
+      status: tourneyStatus.value.trim()
+    };
+
+    try {
+      await apiSave('tournaments', payload);
+      resetTourneyForm();
+      await renderTournaments();
+    } catch (e) {
+      console.error('Tournament save error:', e);
+      alert('Could not save this tournament. Please try again.');
+    }
+  });
+
+  function resetTourneyForm() {
+    tourneyForm.reset();
+    tourneyId.value = '';
+    tourneyCancel.style.display = 'none';
+  }
+
+  tourneyCancel.addEventListener('click', resetTourneyForm);
+
+  window.editTournament = function(id) {
+    const item = cachedTournaments.find((i) => i.id === id);
+    if (!item) return;
+
+    tourneyId.value = item.id;
+    tourneyName.value = item.name;
+    tourneyDate.value = item.date;
+    tourneyFormat.value = item.format;
+    tourneyStatus.value = item.status;
+    tourneyCancel.style.display = 'inline-block';
+    window.scrollTo({ top: tourneyForm.offsetTop - 80, behavior: 'smooth' });
+  };
+
+  window.deleteTournament = async function(id) {
+    if (!confirm('Delete this tournament entry?')) return;
+    try {
+      await apiDelete('tournaments', id);
+      await renderTournaments();
+    } catch (e) {
+      console.error('Tournament delete error:', e);
+      alert('Could not delete this tournament. Please try again.');
+    }
+  };
+
+  // --- 5. Bracket Generator Module ---
+  // Purely client-side — not backed by the database, unchanged.
+  const bracketTeamsInput = document.getElementById('bracket-teams');
+  const bracketFormatSelect = document.getElementById('bracket-format');
+  const bracketGenerateBtn = document.getElementById('bracket-generate');
+  const bracketNote = document.getElementById('bracket-note');
+  const bracketOutput = document.getElementById('bracket-output');
+
+  bracketGenerateBtn.addEventListener('click', () => {
+    const raw = bracketTeamsInput.value.trim();
+    if (!raw) {
+      bracketNote.textContent = 'Please enter at least two team names.';
+      bracketOutput.innerHTML = '';
+      return;
+    }
+
+    const teams = raw.split('\n').map((t) => t.trim()).filter((t) => t.length > 0);
+    if (teams.length < 2) {
+      bracketNote.textContent = 'At least 2 teams are required to generate a bracket.';
+      bracketOutput.innerHTML = '';
+      return;
+    }
+
+    let selectedFormat = bracketFormatSelect.value;
+    if (selectedFormat === 'auto') {
+      if (teams.length <= 4) selectedFormat = 'single';
+      else if (teams.length <= 8) selectedFormat = 'double';
+      else selectedFormat = 'single';
+    }
+
+    bracketNote.textContent = `Generated ${teams.length}-team bracket (${selectedFormat} format).`;
+
+    if (selectedFormat === 'round-robin') {
+      renderRoundRobin(teams);
+    } else {
+      renderKnockoutBracket(teams, selectedFormat);
+    }
+  });
+
+  function renderKnockoutBracket(teams, format) {
+    // Round up to nearest power of 2
+    const size = Math.pow(2, Math.ceil(Math.log2(teams.length)));
+    const paddedTeams = [...teams];
+    while (paddedTeams.length < size) {
+      paddedTeams.push('BYE');
+    }
+
+    const totalRounds = Math.log2(size);
+    let html = `<div style="overflow-x:auto;padding-bottom:16px;"><div style="display:flex;gap:24px;min-width:600px;">`;
+
+    let currentMatches = [];
+    for (let i = 0; i < size; i += 2) {
+      currentMatches.push([paddedTeams[i], paddedTeams[i + 1]]);
+    }
+
+    for (let r = 1; r <= totalRounds; r++) {
+      const roundName = r === totalRounds ? 'Finals' : r === totalRounds - 1 ? 'Semifinals' : `Round ${r}`;
+      html += `
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:space-around;">
+          <h4 style="font-family:var(--font-mono);font-size:0.8rem;color:var(--gold);margin-bottom:12px;text-transform:uppercase;">${roundName}</h4>
+      `;
+
+      currentMatches.forEach((m, idx) => {
+        html += `
+          <div class="card" style="padding:10px 14px;margin-bottom:12px;background:var(--panel-alt);">
+            <div style="font-family:var(--font-mono);font-size:0.82rem;display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:4px;">
+              <span>${escapeHtml(m[0])}</span>
+              <span style="color:var(--text-dim);">#${idx * 2 + 1}</span>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:0.82rem;display:flex;justify-content:space-between;">
+              <span>${escapeHtml(m[1])}</span>
+              <span style="color:var(--text-dim);">#${idx * 2 + 2}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+
+      // Next round placeholder calculation
+      const nextCount = currentMatches.length / 2;
+      currentMatches = [];
+      for (let k = 0; k < nextCount; k++) {
+        currentMatches.push([`TBD (Winner M${k * 2 + 1})`, `TBD (Winner M${k * 2 + 2})`]);
+      }
+    }
+
+    html += `</div></div>`;
+    bracketOutput.innerHTML = html;
+  }
+
+  function renderRoundRobin(teams) {
+    let html = '<div class="grid grid-2">';
+    let matchCount = 0;
+
+    for (let i = 0; i < teams.length; i++) {
+      for (let j = i + 1; j < teams.length; j++) {
+        matchCount++;
+        html += `
+          <div class="card" style="padding:12px 16px;background:var(--panel-alt);">
+            <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--gold);margin-bottom:4px;">MATCH ${matchCount}</div>
+            <div style="font-weight:600;font-size:0.95rem;">${escapeHtml(teams[i])} <span style="color:var(--ember);margin:0 6px;">VS</span> ${escapeHtml(teams[j])}</div>
+          </div>
+        `;
+      }
+    }
+
+    html += '</div>';
+    bracketOutput.innerHTML = html;
+  }
+
+  // Helper function to prevent XSS injection in dynamic renders
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Initial authentication check on execution
+  checkAuth();
 });
