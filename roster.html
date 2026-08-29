@@ -30,7 +30,7 @@
 </header>
 
 <section class="container" style="padding-bottom: 60px;">
-  <!-- Grouped Roster Container -->
+  <!-- Roster Container -->
   <div id="roster-categories"></div>
 </section>
 
@@ -44,7 +44,7 @@
   (async () => {
     const categoriesContainer = document.getElementById('roster-categories');
 
-    // Helper to generate 2-letter initials from username
+    // Helper to generate 2-letter initials from a name, used only as a fallback
     function getInitials(name) {
       if (!name) return '??';
       const parts = name.trim().split(/[\s_-]+/);
@@ -58,7 +58,7 @@
       // Fetch from API (uses /api/roster endpoint)
       const response = await fetch('/api/roster');
       if (!response.ok) throw new Error('Failed to fetch roster data');
-      
+
       const roster = await response.json();
 
       if (!roster || roster.length === 0) {
@@ -66,52 +66,23 @@
         return;
       }
 
-      // Hierarchy order
-      const roleHierarchy = ['Leader', 'Admin', 'Officer', 'Member'];
-
-      // Group members by role
-      const grouped = roleHierarchy.reduce((acc, role) => {
-        acc[role] = roster.filter(p => (p.role || '').toLowerCase() === role.toLowerCase());
-        return acc;
-      }, {});
-
-      // Render grouped sections
-      const sectionsHtml = roleHierarchy.map(role => {
-        const members = grouped[role];
-        if (!members || members.length === 0) return ''; // Hide empty categories
+      // Render every member as a single grid — roles are free text
+      // (e.g. "Substitute", "maingay"), not a fixed hierarchy, so we
+      // don't try to bucket members into categories.
+      const cardsHtml = roster.map(p => {
+        const initials = p.initials || getInitials(p.name);
 
         return `
-          <div class="roster-category reveal" style="margin-bottom: 40px;">
-            <div class="section-head" style="margin-bottom: 20px;">
-              <span class="eyebrow">Rank</span>
-              <h2 style="font-size: 1.5rem; text-transform: uppercase;">${role}s</h2>
-            </div>
-            
-            <div class="grid grid-3">
-              ${members.map(p => {
-                const initials = getInitials(p.username);
-                const isNew = p.is_new === 1 || p.is_new === true;
-
-                return `
-                  <article class="card player-card reveal" style="position: relative;">
-                    ${isNew ? '<span class="badge-new" style="position: absolute; top: 12px; right: 12px; background: var(--accent, #e53935); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 3px; letter-spacing: 1px;">NEW</span>' : ''}
-                    
-                    <div class="player-avatar">
-                      ${p.avatar_url ? `<img src="${p.avatar_url}" alt="${p.username}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : initials}
-                    </div>
-                    
-                    <h3>${p.username}</h3>
-                    <div class="player-role role-tag role-${p.role.toLowerCase()}">${p.role}</div>
-                    <p class="player-meta">Joined ${new Date(p.joined_at || Date.now()).toLocaleDateString()}</p>
-                  </article>
-                `;
-              }).join('')}
-            </div>
-          </div>
+          <article class="card player-card reveal" style="position: relative;">
+            <div class="player-avatar">${initials}</div>
+            <h3>${p.name}</h3>
+            <div class="player-role role-tag">${p.role || 'Member'}</div>
+            <p class="player-meta">${p.meta || ''}</p>
+          </article>
         `;
       }).join('');
 
-      categoriesContainer.innerHTML = sectionsHtml || '<p style="color:var(--text-dim);">No roster members found.</p>';
+      categoriesContainer.innerHTML = `<div class="grid grid-3">${cardsHtml}</div>`;
 
     } catch (e) {
       console.error('Roster error:', e);
