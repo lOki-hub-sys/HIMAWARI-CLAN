@@ -7,6 +7,10 @@
    read from and written to the live D1-backed API (/api/<table>),
    not localStorage. Login and the bracket generator remain purely
    client-side, unchanged.
+
+   CHANGE FROM PREVIOUS VERSION: the roster module now reads/writes a
+   `tier` field (Leadership / Admin / Officer / Member) alongside the
+   existing free-text `role`. Everything else is unchanged.
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -209,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const rosterId = document.getElementById('roster-id');
   const rosterInitials = document.getElementById('roster-initials');
   const rosterName = document.getElementById('roster-name');
+  const rosterTier = document.getElementById('roster-tier');
   const rosterRole = document.getElementById('roster-role');
   const rosterMeta = document.getElementById('roster-meta');
   const rosterCancel = document.getElementById('roster-cancel');
@@ -238,7 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
               ${escapeHtml(item.initials)}
             </div>
             <div>
-              <h3 style="font-size:1.05rem;margin:0;">${escapeHtml(item.name)} <span style="font-size:0.8rem;color:var(--gold);font-family:var(--font-mono);font-weight:400;margin-left:8px;">[${escapeHtml(item.role)}]</span></h3>
+              <h3 style="font-size:1.05rem;margin:0;">
+                ${escapeHtml(item.name)}
+                <span style="font-size:0.72rem;color:var(--bg);background:var(--gold);font-family:var(--font-mono);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;margin-left:8px;">${escapeHtml(item.tier || 'Member')}</span>
+                <span style="font-size:0.8rem;color:var(--gold);font-family:var(--font-mono);font-weight:400;margin-left:6px;">[${escapeHtml(item.role)}]</span>
+              </h3>
               <p style="color:var(--text-dim);font-size:0.8rem;margin-top:2px;">${escapeHtml(item.meta)}</p>
             </div>
           </div>
@@ -259,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: id || `p${Date.now()}`,
       initials: rosterInitials.value.trim().toUpperCase(),
       name: rosterName.value.trim(),
+      tier: rosterTier.value,
       role: rosterRole.value.trim(),
       meta: rosterMeta.value.trim()
     };
@@ -276,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function resetRosterForm() {
     rosterForm.reset();
     rosterId.value = '';
+    rosterTier.value = 'Member';
     rosterCancel.style.display = 'none';
   }
 
@@ -288,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rosterId.value = item.id;
     rosterInitials.value = item.initials;
     rosterName.value = item.name;
+    rosterTier.value = item.tier || 'Member';
     rosterRole.value = item.role;
     rosterMeta.value = item.meta;
     rosterCancel.style.display = 'inline-block';
