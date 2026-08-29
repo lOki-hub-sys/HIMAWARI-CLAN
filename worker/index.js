@@ -3,6 +3,10 @@
    Handles /api/* routes against the D1 database (env.DB).
    Everything else falls through to the static site files
    (env.ASSETS), exactly like before.
+
+   CHANGE FROM PREVIOUS VERSION: roster.columns now includes 'tier'
+   (Leadership / Admin / Officer / Member), added alongside the
+   existing free-text 'role' field. Nothing else in this file changed.
    ============================================================ */
 
 function json(data, status = 200) {
@@ -19,7 +23,7 @@ function badRequest(message) {
 // Simple table config: table name -> required fields for a create/update
 const TABLES = {
   roster: {
-    columns: ['id', 'initials', 'name', 'role', 'meta'],
+    columns: ['id', 'initials', 'name', 'role', 'meta', 'tier'],
     order: 'sort_order ASC, rowid ASC',
   },
   announcements: {
