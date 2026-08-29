@@ -34,9 +34,13 @@ const TABLES = {
     columns: ['id', 'name', 'date', 'format', 'status'],
     order: 'rowid DESC',
   },
-  applicants: {
+    applicants: {
     columns: ['id', 'ign', 'rank', 'discord', 'notes', 'date'],
     order: 'rowid DESC',
+  },
+  matches: {
+    columns: ['id', 'status', 'opponent', 'event', 'event_date', 'score_for', 'score_against', 'vod_url', 'notes'],
+    order: 'event_date DESC',
   },
 };
 
