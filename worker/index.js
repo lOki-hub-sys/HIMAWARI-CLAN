@@ -23,7 +23,7 @@ function badRequest(message) {
 // Simple table config: table name -> required fields for a create/update
 const TABLES = {
   roster: {
-        columns: ['id', 'initials', 'name', 'role', 'meta', 'tier', 'kd', 'loadout', 'twitch', 'youtube', 'x_handle'],
+           columns: ['id', 'initials', 'name', 'role', 'meta', 'tier', 'kd', 'loadout', 'twitch', 'youtube', 'x_handle', 'avatar_url'],
     order: 'sort_order ASC, rowid ASC',
   },
   announcements: {
