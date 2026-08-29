@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const applicantBadge = document.getElementById('applicant-count-badge');
 
   const DEMO_USER = 'admin';
-  const DEMO_PASS = 'himawar2026';
+  const DEMO_PASS = 'himawari2026';
 
   // --- Auth Flow ---
   function checkAuth() {
