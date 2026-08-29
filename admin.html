@@ -23,19 +23,24 @@
 </nav>
 
 <!-- Login Gate -->
-<div class="login-gate" id="login-gate" style="max-width:400px;margin:80px auto;padding:32px;background:var(--panel);border:1px solid var(--line);">
-  <h2 style="margin-bottom:16px;">Admin Access</h2>
+<div class="login-gate" id="login-gate" style="max-width: 420px; margin: 100px auto; padding: 40px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+  <div style="text-align: center; margin-bottom: 24px;">
+    <span class="emblem" style="margin: 0 auto 12px; display: block;"></span>
+    <h2 style="font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text);">Admin Access</h2>
+    <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim); margin-top: 4px;">Enter your credentials to control the clan portal</p>
+  </div>
+  
   <form id="login-form">
-    <div style="margin-bottom:12px;">
-      <label style="display:block;font-family:var(--font-mono);font-size:0.8rem;margin-bottom:4px;">Username</label>
-      <input type="text" id="admin-user" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--line);color:var(--text);" required>
+    <div style="margin-bottom: 16px;">
+      <label style="display: block; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 6px;">Username</label>
+      <input type="text" id="admin-user" style="width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 2px; color: var(--text); font-family: var(--font-mono); font-size: 0.9rem;" required>
     </div>
-    <div style="margin-bottom:16px;">
-      <label style="display:block;font-family:var(--font-mono);font-size:0.8rem;margin-bottom:4px;">Password</label>
-      <input type="password" id="admin-pass" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--line);color:var(--text);" required>
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 6px;">Password</label>
+      <input type="password" id="admin-pass" style="width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 2px; color: var(--text); font-family: var(--font-mono); font-size: 0.9rem;" required>
     </div>
-    <button type="submit" id="login-btn" class="btn btn-gold" style="width:100%;">Login</button>
-    <p id="login-error" style="color:var(--ember);font-family:var(--font-mono);font-size:0.8rem;margin-top:12px;"></p>
+    <button type="submit" id="login-btn" class="btn btn-gold" style="width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.08em;">AUTHENTICATE</button>
+    <p id="login-error" style="color: var(--ember); font-family: var(--font-mono); font-size: 0.8rem; text-align: center; margin-top: 16px; min-height: 1em;"></p>
   </form>
 </div>
 
