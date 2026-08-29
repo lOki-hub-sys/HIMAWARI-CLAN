@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const rosterTier = document.getElementById('roster-tier');
   const rosterRole = document.getElementById('roster-role');
   const rosterMeta = document.getElementById('roster-meta');
+ const rosterAvatar = document.getElementById('roster-avatar');
   const rosterKd = document.getElementById('roster-kd');
   const rosterLoadout = document.getElementById('roster-loadout');
   const rosterTwitch = document.getElementById('roster-twitch');
