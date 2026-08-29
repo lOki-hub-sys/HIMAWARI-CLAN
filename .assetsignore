@@ -1,0 +1,4 @@
+.git/**
+.wrangler/**
+backup.sql
+node_modules/**
