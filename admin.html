@@ -1,124 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel — Himawari Clan</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:ital,wght@0,600;0,700;1,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <style>
-    /* Professional CODM Tactical Dark Theme Overrides */
-    body[data-page="admin"] {
-      background-color: #080a0e;
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(255, 183, 3, 0.05) 0%, transparent 70%),
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 100% 100%, 30px 30px, 30px 30px;
-      color: #d1d5db;
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* CODM Tactical Login Card */
-    .codm-login-card {
-      max-width: 440px;
-      margin: 100px auto;
-      padding: 40px;
-      background: rgba(15, 18, 26, 0.95);
-      border: 1px solid rgba(255, 183, 3, 0.25);
-      border-radius: 4px;
-      box-shadow: 0 0 35px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 183, 3, 0.1);
-      position: relative;
-      clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
-    }
-
-    .codm-login-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: #ffb703;
-      box-shadow: 0 0 10px #ffb703;
-    }
-
-    .codm-title {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 2.2rem;
-      font-weight: 700;
-      font-style: italic;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #ffffff;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-      margin: 10px 0 6px;
-    }
-
-    .codm-subtitle {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.78rem;
-      color: #8a94a6;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .codm-label {
-      display: block;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #ffb703;
-      margin-bottom: 8px;
-    }
-
-    .codm-input {
-      width: 100%;
-      padding: 12px 14px;
-      background: #090b10 !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
-      border-radius: 2px;
-      color: #ffffff !important;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.95rem;
-      box-sizing: border-box;
-      transition: all 0.2s ease;
-    }
-
-    .codm-input:focus {
-      outline: none;
-      border-color: #ffb703 !important;
-      box-shadow: 0 0 8px rgba(255, 183, 3, 0.3);
-    }
-
-    .codm-btn-gold {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
-      border: none;
-      color: #000000;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      cursor: pointer;
-      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-      transition: all 0.2s ease;
-    }
-
-    .codm-btn-gold:hover {
-      background: linear-gradient(135deg, #ffd166 0%, #ffb703 100%);
-      box-shadow: 0 0 15px rgba(255, 183, 3, 0.5);
-      transform: translateY(-1px);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join — Himawari Clan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/enhancements.css">
 </head>
-<body data-page="admin">
-
+<body data-page="join">
 <nav class="site-nav">
   <a href="index.html" class="brand"><span class="emblem"></span> Himawari</a>
   <div class="nav-links">
@@ -130,199 +21,83 @@
   </div>
   <button class="nav-toggle" aria-label="Toggle menu">☰</button>
 </nav>
-
-<!-- Tactical CODM Login Gate -->
-<div class="login-gate codm-login-card" id="login-gate">
-  <div style="text-align: center; margin-bottom: 28px;">
-    <div class="emblem" style="margin: 0 auto 12px; width: 28px; height: 28px; background: #ffb703; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); box-shadow: 0 0 10px #ffb703;"></div>
-    <h2 class="codm-title">ADMIN ACCESS</h2>
-    <p class="codm-subtitle">Enter credentials to command portal</p>
+<header class="hero" style="padding-bottom:40px;">
+  <div class="container">
+    <span class="eyebrow">Recruitment</span>
+    <h1 style="font-size:clamp(2rem,5vw,3.2rem);margin-top:12px;">Grow with us</h1>
+    <p class="lede" style="margin-top:14px;">We're looking for a flex substitute ahead of the fall season. Academy tryouts run monthly.</p>
   </div>
-  
-  <form id="login-form">
-    <div style="margin-bottom: 20px;">
-      <label class="codm-label">USERNAME</label>
-      <input type="text" id="admin-user" class="codm-input" placeholder="OPERATOR ID" required>
+</header>
+<section class="container">
+  <div class="grid grid-2">
+    <div class="card reveal">
+      <h3 style="font-size:1.1rem;margin-bottom:14px;">What we look for</h3>
+           <ul style="color:var(--text-dim);padding-left:18px;line-height:1.9;">
+        <li><strong>Rank:</strong> Diamond+ or equivalent competitive experience</li>
+        <li><strong>Age:</strong> 18+ preferred, exceptions considered case-by-case</li>
+        <li><strong>Region:</strong> NA (ping under 40ms to our scrim server)</li>
+        <li><strong>Availability:</strong> Tue/Thu evenings for scrims + weekend matches</li>
+        <li><strong>Other:</strong> Active mic, calm under pressure, coachable</li>
+      </ul>
+      <a href="https://discord.gg/YOUR_INVITE" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:18px;display:inline-block;">Join our Discord</a>
     </div>
-    <div style="margin-bottom: 28px;">
-      <label class="codm-label">PASSWORD</label>
-      <input type="password" id="admin-pass" class="codm-input" placeholder="••••••••" required>
-    </div>
-    <button type="submit" id="login-btn" class="codm-btn-gold">AUTHENTICATE</button>
-    <p id="login-error" style="color: #ff4d4d; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; text-align: center; margin-top: 16px; min-height: 1em;"></p>
-  </form>
-</div>
-
-<!-- Admin Dashboard -->
-<div id="admin-app" style="display:none;" class="container style-padding">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-    <h1 style="font-family: 'Rajdhani', sans-serif; text-transform: uppercase; font-style: italic;">Admin Control Room</h1>
-    <button id="logout-btn" class="btn btn-ghost">Logout</button>
-  </div>
-
-  <div class="admin-tabs" style="display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--line);padding-bottom:8px;">
-    <button class="admin-tab active" data-tab="announcements">Announcements</button>
-    <button class="admin-tab" data-tab="roster">Roster</button>
-    <button class="admin-tab" data-tab="applicants">Applicants <span id="applicant-count-badge"></span></button>
-    <button class="admin-tab" data-tab="tournaments">Tournaments</button>
-    <button class="admin-tab" data-tab="brackets">Bracket Gen</button>
-  </div>
-
-  <!-- Announcements Panel -->
-  <div class="admin-panel active" id="panel-announcements">
-    <form id="announce-form" class="card" style="padding:20px;margin-bottom:24px;">
-      <h3>Create / Edit Announcement</h3>
-      <input type="hidden" id="announce-id">
-      <div style="margin-bottom:12px;">
-        <label>Title</label>
-        <input type="text" id="announce-title" class="codm-input" required>
+    <form class="card reveal" id="apply-form">
+      <h3 style="font-size:1.1rem;margin-bottom:16px;">Application</h3>
+      <div class="field">
+        <label for="ign">In-game name</label>
+        <input id="ign" name="ign" type="text" required>
       </div>
-      <div style="margin-bottom:12px;">
-        <label>Date</label>
-        <input type="date" id="announce-date" class="codm-input" required>
+      <div class="field">
+        <label for="rank">Current rank</label>
+        <input id="rank" name="rank" type="text" required>
       </div>
-      <div style="margin-bottom:12px;">
-        <label>Body</label>
-        <textarea id="announce-body" rows="4" class="codm-input" required></textarea>
+      <div class="field">
+        <label for="discord">Discord handle</label>
+        <input id="discord" name="discord" type="text" required>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button type="submit" class="btn btn-gold">Save Announcement</button>
-        <button type="button" id="announce-cancel" class="btn btn-ghost" style="display:none;">Cancel</button>
+      <div class="field">
+        <label for="notes">Anything else we should know?</label>
+        <textarea id="notes" name="notes"></textarea>
       </div>
+      <button type="submit" class="btn btn-primary">Submit application</button>
+      <p id="apply-note" style="margin-top:14px;font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);"></p>
     </form>
-    <div id="announce-list"></div>
+      <div class="card reveal" style="margin-top:32px;">
+    <h3 style="font-size:1.1rem;margin-bottom:14px;">Code of conduct</h3>
+    <ul style="color:var(--text-dim);padding-left:18px;line-height:1.9;">
+      <li>No toxicity toward teammates, opponents, or casters — on comms or in public chat</li>
+      <li>Message the team lead if you'll miss a scheduled scrim or practice; repeated no-shows put your roster spot at risk</li>
+      <li>Show up on time and ready — loadouts set, mic tested, before the scrim block starts</li>
+      <li>Represent the clan tag professionally in tournaments, streams, and public matches</li>
+    </ul>
   </div>
-
-  <!-- Roster Panel -->
-  <div class="admin-panel" id="panel-roster">
-    <form id="roster-form" class="card" style="padding:20px;margin-bottom:24px;">
-      <h3>Create / Edit Roster Member</h3>
-      <input type="hidden" id="roster-id">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div>
-          <label>Initials</label>
-          <input type="text" id="roster-initials" maxlength="3" class="codm-input">
-        </div>
-        <div>
-          <label>Name</label>
-          <input type="text" id="roster-name" class="codm-input" required>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div>
-          <label>Tier / Rank</label>
-          <select id="roster-tier" class="codm-input">
-            <option value="Leadership">Leadership</option>
-            <option value="Admin">Admin</option>
-            <option value="Officer">Officer</option>
-            <option value="Member" selected>Member</option>
-          </select>
-        </div>
-        <div>
-          <label>Role</label>
-          <input type="text" id="roster-role" class="codm-input" required>
-        </div>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label>Details / Bio</label>
-        <input type="text" id="roster-meta" class="codm-input">
-      </div>
-      <div style="margin-bottom:12px;">
-        <label>Avatar Image Upload</label>
-        <input type="file" id="roster-avatar" accept="image/*" class="codm-input">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div>
-          <label>K/D Ratio</label>
-          <input type="number" step="0.01" id="roster-kd" class="codm-input">
-        </div>
-        <div>
-          <label>Loadout</label>
-          <input type="text" id="roster-loadout" class="codm-input">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div>
-          <label>Twitch</label>
-          <input type="text" id="roster-twitch" class="codm-input">
-        </div>
-        <div>
-          <label>YouTube</label>
-          <input type="text" id="roster-youtube" class="codm-input">
-        </div>
-        <div>
-          <label>X / Twitter</label>
-          <input type="text" id="roster-x" class="codm-input">
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button type="submit" class="btn btn-gold">Save Member</button>
-        <button type="button" id="roster-cancel" class="btn btn-ghost" style="display:none;">Cancel</button>
-      </div>
-    </form>
-    <div id="roster-list"></div>
-  </div>
-
-  <!-- Applicants Panel -->
-  <div class="admin-panel" id="panel-applicants">
-    <div id="applicant-list"></div>
-  </div>
-
-  <!-- Tournaments Panel -->
-  <div class="admin-panel" id="panel-tournaments">
-    <form id="tourney-form" class="card" style="padding:20px;margin-bottom:24px;">
-      <h3>Create / Edit Tournament</h3>
-      <input type="hidden" id="tourney-id">
-      <div style="margin-bottom:12px;">
-        <label>Tournament Name</label>
-        <input type="text" id="tourney-name" class="codm-input" required>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div>
-          <label>Date</label>
-          <input type="date" id="tourney-date" class="codm-input" required>
-        </div>
-        <div>
-          <label>Format</label>
-          <input type="text" id="tourney-format" class="codm-input" required>
-        </div>
-        <div>
-          <label>Status</label>
-          <input type="text" id="tourney-status" class="codm-input" required>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button type="submit" class="btn btn-gold">Save Tournament</button>
-        <button type="button" id="tourney-cancel" class="btn btn-ghost" style="display:none;">Cancel</button>
-      </div>
-    </form>
-    <div id="tourney-list"></div>
-  </div>
-
-  <!-- Brackets Panel -->
-  <div class="admin-panel" id="panel-brackets">
-    <div class="card" style="padding:20px;">
-      <h3>Bracket Generator</h3>
-      <div style="margin-bottom:12px;">
-        <label>Enter Team Names (One per line)</label>
-        <textarea id="bracket-teams" rows="6" class="codm-input"></textarea>
-      </div>
-      <div style="margin-bottom:12px;">
-        <label>Format</label>
-        <select id="bracket-format" class="codm-input">
-          <option value="auto">Auto-Detect</option>
-          <option value="single">Single Elimination</option>
-          <option value="round-robin">Round Robin</option>
-        </select>
-      </div>
-      <button id="bracket-generate" class="btn btn-gold">Generate Bracket</button>
-      <p id="bracket-note" style="margin-top:12px;color:var(--gold);font-family:var(--font-mono);font-size:0.85rem;"></p>
-      <div id="bracket-output" style="margin-top:20px;"></div>
-    </div>
-  </div>
-</div>
-
+</section>
+<footer class="site-footer">
+  <span>© 2026 Himawari Clan</span>
+  <span>Managed via the clan admin panel</span>
+</footer>
 <script src="js/main.js"></script>
-<script src="js/admin.js"></script>
+<script src="js/enhancements.js"></script>
+<script>
+  document.getElementById('apply-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const note = document.getElementById('apply-note');
+    const record = {
+      id: 'app' + Date.now(),
+      ign: document.getElementById('ign').value,
+      rank: document.getElementById('rank').value,
+      discord: document.getElementById('discord').value,
+      notes: document.getElementById('notes').value,
+      date: new Date().toISOString().slice(0, 10),
+    };
+    try {
+      await apiSave('applicants', record);
+      note.textContent = 'Application received — the clan admins will review it and reach out on Discord.';
+      e.target.reset();
+    } catch (err) {
+      note.textContent = 'Something went wrong submitting your application — please try again in a moment.';
+    }
+  });
+</script>
 </body>
 </html>
