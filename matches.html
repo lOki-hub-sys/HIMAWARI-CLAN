@@ -99,29 +99,40 @@
   // ---------- Load Bracket Image ----------
   const bracketEl = document.getElementById('bracket-display');
   if (bracketEl) {
+    let item = null;
+
+    // 1. Try API first
     try {
       const res = await fetch('/api/bracket');
       if (res.ok) {
         const data = await res.json();
-        const item = Array.isArray(data) ? data[0] : data;
-        if (item && item.image_url) {
-          bracketEl.innerHTML = `
-            <div class="card reveal" style="text-align:center;padding:20px;">
-              ${item.title ? `<h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:16px;color:var(--gold);">${item.title}</h3>` : ''}
-              <div style="overflow-x:auto;">
-                <img src="${item.image_url}" alt="Tournament Bracket" style="max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line);">
-              </div>
-            </div>
-          `;
-          if (typeof initReveal === 'function') initReveal();
-        } else {
-          bracketEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No bracket uploaded yet.</p>';
-        }
-      } else {
-        bracketEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No bracket uploaded yet.</p>';
+        item = Array.isArray(data) ? data[0] : data;
       }
     } catch (e) {
-      bracketEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load tournament bracket right now.</p>';
+      // API not reachable
+    }
+
+    // 2. Fallback to localStorage if API unavailable or empty
+    if (!item || !item.image_url) {
+      const localBracket = localStorage.getItem('himawari_bracket');
+      if (localBracket) {
+        item = { image_url: localBracket, title: 'Tournament Bracket' };
+      }
+    }
+
+    // Render Bracket
+    if (item && item.image_url) {
+      bracketEl.innerHTML = `
+        <div class="card reveal" style="text-align:center;padding:20px;">
+          ${item.title ? `<h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:16px;color:var(--gold);">${item.title}</h3>` : ''}
+          <div style="overflow-x:auto;">
+            <img src="${item.image_url}" alt="Tournament Bracket" style="max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line);">
+          </div>
+        </div>
+      `;
+      if (typeof initReveal === 'function') initReveal();
+    } else {
+      bracketEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No bracket uploaded yet.</p>';
     }
   }
 
@@ -130,20 +141,49 @@
   const resultsEl = document.getElementById('results-list');
   const statsBody = document.getElementById('clan-stats-body');
   let matches = [];
+
+  // 1. Try API first
   try {
-    matches = await apiList('matches');
+    if (typeof apiList === 'function') {
+      matches = await apiList('matches');
+    }
   } catch (e) {
-    upcomingEl.innerHTML = resultsEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load matches right now.</p>';
-    statsBody.textContent = 'Unavailable.';
-    return;
+    matches = [];
+  }
+
+  // 2. Fallback to localStorage (himawari_tournaments) if API unavailable or empty
+  if (!matches || matches.length === 0) {
+    const rawTournaments = localStorage.getItem('himawari_tournaments');
+    if (rawTournaments) {
+      try {
+        const parsed = JSON.parse(rawTournaments);
+        // Map admin panel format to public matches format
+        matches = parsed.map(t => ({
+          opponent: t.name || t.opponent || 'Opponent',
+          event: t.format || t.event || 'Tournament',
+          event_date: t.date || t.event_date || new Date().toISOString(),
+          status: (t.status && t.status.toLowerCase() === 'completed') ? 'result' : 'upcoming',
+          score_for: t.score_for !== undefined ? Number(t.score_for) : 0,
+          score_against: t.score_against !== undefined ? Number(t.score_against) : 0,
+          vod_url: t.vod_url || null
+        }));
+      } catch (err) {
+        console.error('Error parsing local tournaments:', err);
+      }
+    }
   }
 
   function countdown(dateStr) {
     const diff = new Date(dateStr) - new Date();
-    if (diff <= 0) return 'Today';
+    if (isNaN(diff) || diff <= 0) return 'Today';
     const days = Math.floor(diff / 86400000);
     const hours = Math.floor((diff % 86400000) / 3600000);
     return days > 0 ? `in ${days}d ${hours}h` : `in ${hours}h`;
+  }
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString(undefined, { dateStyle: 'medium' });
   }
 
   const upcoming = matches.filter(m => m.status === 'upcoming').sort((a,b) => new Date(a.event_date) - new Date(b.event_date));
@@ -151,7 +191,7 @@
 
   upcomingEl.innerHTML = upcoming.length ? upcoming.map(m => `
     <div class="card reveal">
-      <span class="eyebrow">${new Date(m.event_date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} · ${countdown(m.event_date)}</span>
+      <span class="eyebrow">${formatDate(m.event_date)} · ${countdown(m.event_date)}</span>
       <h3 style="margin-top:8px;">vs ${m.opponent}</h3>
       <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem;">${m.event || 'Scrim'}</p>
     </div>
@@ -161,14 +201,14 @@
     const won = m.score_for > m.score_against;
     return `
     <div class="card reveal" style="border-left:3px solid ${won ? '#7ee787' : '#ff6b6b'};">
-      <span class="eyebrow" style="color:${won ? '#7ee787' : '#ff6b6b'};">${won ? 'WIN' : 'LOSS'} · ${new Date(m.event_date).toLocaleDateString()}</span>
+      <span class="eyebrow" style="color:${won ? '#7ee787' : '#ff6b6b'};">${won ? 'WIN' : 'LOSS'} · ${formatDate(m.event_date)}</span>
       <h3 style="margin-top:8px;">vs ${m.opponent} — ${m.score_for}–${m.score_against}</h3>
       <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem;">${m.event || 'Scrim'}</p>
       ${m.vod_url ? `<a href="${m.vod_url}" target="_blank" rel="noopener" class="btn btn-ghost" style="margin-top:10px;">Watch VOD</a>` : ''}
     </div>
   `; }).join('') : '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No results logged yet.</p>';
 
-  // ---------- Clan stats — computed only from real recorded results ----------
+  // ---------- Clan stats ----------
   if (results.length === 0) {
     statsBody.innerHTML = 'No results logged yet.';
   } else {
@@ -176,7 +216,6 @@
     const losses = results.length - wins;
     const winRate = Math.round((wins / results.length) * 100);
 
-    // current streak, most recent match first
     let streakCount = 0;
     let streakType = null;
     for (const m of results) {
