@@ -412,6 +412,97 @@ h1, h2, h3, h4 {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ---------- Homepage hero: two-column split (copy + insignia) ---------- */
+.hero.hero-home { text-align: left; }
+.hero.hero-home .hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.85fr);
+  gap: clamp(32px, 6vw, 72px);
+  align-items: center;
+}
+.hero.hero-home .hero-copy .eyebrow { opacity: 0; animation: rise-in 760ms var(--ease-snap) 160ms forwards; }
+.hero.hero-home h1 { margin: 18px 0 14px; }
+.hero.hero-home p.lede { margin: 0; max-width: 52ch; }
+.hero.hero-home .hero-cta { justify-content: flex-start; margin-top: 30px; }
+
+/* stat strip, folded into the hero copy column */
+.hero-home .stat-strip {
+  margin: 34px 0 0;
+  max-width: 560px;
+  opacity: 0;
+  animation: rise-in 760ms var(--ease-snap) 860ms forwards;
+}
+.hero-home .stat-strip .stat { text-align: left; padding: 16px 18px; }
+
+/* insignia visual — stands in for portrait art using the sunflower emblem */
+.hero-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(240px, 30vw, 380px);
+}
+.hero-visual-ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: clamp(240px, 32vw, 360px);
+  height: clamp(240px, 32vw, 360px);
+  border: 1px dashed rgba(255, 176, 32, 0.28);
+  border-radius: 50%;
+  animation: spin-slow-rev 42s linear infinite;
+}
+.hero-visual-ring::before {
+  content: '';
+  position: absolute;
+  inset: 22px;
+  border: 1px solid rgba(255, 176, 32, 0.14);
+  border-radius: 50%;
+}
+@keyframes spin-slow-rev { to { transform: rotate(-360deg); } }
+
+.hero-visual-readout {
+  position: absolute;
+  left: 4%;
+  bottom: 4%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.hero-visual-readout span:first-child { color: var(--gold); }
+.hero-visual-readout span:first-child::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-right: 7px;
+  box-shadow: 0 0 6px 1px rgba(255, 176, 32, 0.7);
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+@media (max-width: 860px) {
+  .hero.hero-home { text-align: center; }
+  .hero.hero-home .hero-grid { grid-template-columns: 1fr; }
+  .hero-visual { order: -1; min-height: 220px; margin-bottom: 4px; }
+  .hero.hero-home .hero-cta { justify-content: center; }
+  .hero.hero-home p.lede { margin: 0 auto; }
+  .hero-home .stat-strip { margin-left: auto; margin-right: auto; }
+  .hero-home .stat-strip .stat { text-align: center; }
+  .hero-visual-readout { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-visual-ring { animation: none; }
+  .hero-visual-readout span:first-child::before { animation: none; }
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex;
