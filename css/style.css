@@ -984,7 +984,15 @@ button:focus-visible, a:focus-visible, .btn:focus-visible {
 
 /* ---------- Main column ---------- */
 .roster-main { padding: 28px clamp(18px, 3vw, 32px) 48px; min-width: 0; }
-.roster-main-head { margin-bottom: 22px; }
+.roster-main-head {
+  margin-bottom: 22px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.roster-apply-btn { padding: 11px 20px; font-size: 0.72rem; flex-shrink: 0; }
 .roster-main-head h1 {
   font-size: clamp(1.5rem, 3vw, 2.1rem);
   display: flex;
@@ -1004,37 +1012,31 @@ button:focus-visible, a:focus-visible, .btn:focus-visible {
 
 .roster-tabs {
   display: flex;
-  gap: 22px;
-  border-bottom: 1px solid var(--line);
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
   margin-bottom: 30px;
   flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
 }
 .roster-tab {
   background: none;
   border: none;
   color: var(--text-dim);
   font-family: var(--font-mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 10px 2px 12px;
+  padding: 9px 16px;
   cursor: pointer;
   position: relative;
-  transition: color 160ms var(--ease-snap);
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  transition: color 160ms var(--ease-snap), background 160ms var(--ease-snap);
 }
-.roster-tab::after {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: -1px;
-  height: 2px;
-  background: var(--ember);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 220ms var(--ease-snap);
-}
-.roster-tab:hover { color: var(--text); }
-.roster-tab.active { color: var(--gold); }
-.roster-tab.active::after { transform: scaleX(1); }
+.roster-tab:hover { color: var(--text); background: var(--panel-alt); }
+.roster-tab.active { color: #17110a; background: linear-gradient(120deg, var(--gold), #ffcf6b); font-weight: 700; }
 
 .roster-section { margin-bottom: 36px; scroll-margin-top: 90px; }
 .roster-section-title {
@@ -1252,6 +1254,23 @@ button:focus-visible, a:focus-visible, .btn:focus-visible {
   text-transform: uppercase;
   margin-top: 3px;
 }
+.operator-card .op-kd {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+}
+.operator-card .op-kd .k {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.operator-card .op-kd .v { font-size: 0.8rem; color: var(--text); font-weight: 500; }
+.operator-card.active .op-kd .v { color: var(--gold); }
 
 .operator-detail {
   background: var(--panel);
