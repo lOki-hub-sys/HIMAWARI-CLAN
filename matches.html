@@ -65,6 +65,12 @@
 </header>
 
 <section class="container" style="padding-bottom:60px;">
+  <!-- ---------- Tournament Bracket Section ---------- -->
+  <div style="margin-bottom:48px;">
+    <h3 style="font-size:1.1rem;margin-bottom:14px;">Tournament Bracket</h3>
+    <div id="bracket-display"></div>
+  </div>
+
   <div class="grid grid-2" style="align-items:start;margin-bottom:48px;">
     <div>
       <h3 style="font-size:1.1rem;margin-bottom:14px;">Upcoming</h3>
@@ -90,6 +96,36 @@
 <script src="js/enhancements.js"></script>
 <script>
 (async () => {
+  // ---------- Load Bracket Image ----------
+  const bracketEl = document.getElementById('bracket-display');
+  if (bracketEl) {
+    try {
+      const res = await fetch('/api/bracket');
+      if (res.ok) {
+        const data = await res.json();
+        const item = Array.isArray(data) ? data[0] : data;
+        if (item && item.image_url) {
+          bracketEl.innerHTML = `
+            <div class="card reveal" style="text-align:center;padding:20px;">
+              ${item.title ? `<h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:16px;color:var(--gold);">${item.title}</h3>` : ''}
+              <div style="overflow-x:auto;">
+                <img src="${item.image_url}" alt="Tournament Bracket" style="max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line);">
+              </div>
+            </div>
+          `;
+          if (typeof initReveal === 'function') initReveal();
+        } else {
+          bracketEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No bracket uploaded yet.</p>';
+        }
+      } else {
+        bracketEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No bracket uploaded yet.</p>';
+      }
+    } catch (e) {
+      bracketEl.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load tournament bracket right now.</p>';
+    }
+  }
+
+  // ---------- Load Matches ----------
   const upcomingEl = document.getElementById('upcoming-list');
   const resultsEl = document.getElementById('results-list');
   const statsBody = document.getElementById('clan-stats-body');

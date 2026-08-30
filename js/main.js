@@ -17,7 +17,7 @@ function himawariSet(key, value) {
 }
 
 /* ---------- Shared-data API helpers (D1-backed, replaces localStorage) ---------- */
-// table: 'roster' | 'announcements' | 'tournaments' | 'applicants'
+// table: 'roster' | 'announcements' | 'tournaments' | 'applicants' | 'matches' | 'bracket'
 
 async function apiList(table) {
   const res = await fetch(`/api/${table}`);
@@ -77,8 +77,6 @@ function initReveal() {
   const targets = document.querySelectorAll('.reveal');
 
   if (!('IntersectionObserver' in window) || targets.length === 0) {
-    // No animation support (or nothing to animate) — leave elements in
-    // their default, fully-visible state. Nothing to do.
     return;
   }
 
@@ -88,8 +86,6 @@ function initReveal() {
     groups.set(parent, idx + 1);
     if (!t.dataset.dir) t.dataset.dir = dirs[idx % dirs.length];
     t.style.transitionDelay = `${Math.min(idx * 70, 420)}ms`;
-    // Only now, with everything configured, opt this element into the
-    // hidden/animated starting state.
     t.classList.add('reveal-armed');
   });
 
@@ -106,9 +102,6 @@ function initReveal() {
   );
   targets.forEach((t) => io.observe(t));
 
-  // Safety net: if an armed element never registers as intersecting
-  // (edge cases with certain layouts, extensions, or nested scroll
-  // containers), don't let it stay invisible forever.
   setTimeout(() => {
     targets.forEach((t) => t.classList.add('is-visible'));
   }, 1200);
@@ -155,6 +148,7 @@ function initHeroMotion() {
     }, { passive: true });
   }
 }
+
 function initFooterLinks() {
   const footer = document.querySelector('.site-footer');
   if (!footer) return;
