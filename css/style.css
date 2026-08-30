@@ -540,6 +540,92 @@ h1, h2, h3, h4 {
   .warroom-path, .warroom-point circle:first-child { animation: none; }
 }
 
+/* ---------- Join page: 3-column layout + biometric portal ---------- */
+.join-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
+@media (min-width: 1000px) {
+  .join-grid { grid-template-columns: 0.85fr 1.15fr 0.85fr; }
+}
+
+.req-list { color: var(--text-dim); line-height: 1.9; list-style: none; padding: 0; }
+.req-list li {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 4px;
+}
+.req-list li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 9px;
+  width: 8px; height: 8px;
+  border: 1px solid var(--gold);
+  transform: rotate(45deg);
+}
+.req-list li strong { color: var(--text); }
+
+.biometric-portal {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.scan-ring-lg {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  position: relative;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.scan-ring-lg .emblem { font-size: 22px; }
+.scan-ring-lg::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-top-color: var(--gold);
+  animation: scan-ring-spin 2.4s linear infinite;
+}
+.scan-ring-lg::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 176, 32, 0.25);
+  animation: spin-slow-rev 18s linear infinite;
+}
+.biometric-status { flex: 1; min-width: 0; }
+.biometric-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin: 8px 0 6px;
+}
+.biometric-bar-track {
+  height: 4px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.biometric-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  transition: width 320ms var(--ease-out);
+}
+.biometric-pct {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  color: var(--gold);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-ring-lg::before, .scan-ring-lg::after { animation: none; }
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex;
@@ -765,24 +851,30 @@ button:focus-visible, a:focus-visible, .btn:focus-visible {
 /* ---------- Admin ---------- */
 .admin-tabs {
   display: flex;
-  gap: 2px;
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line);
   margin-bottom: 28px;
   flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
 }
 .admin-tab {
   padding: 10px 18px;
-  background: var(--panel);
-  border: 1px solid var(--line);
+  background: none;
+  border: none;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   cursor: pointer;
   color: var(--text-dim);
-  transition: color 180ms var(--ease-snap), border-color 180ms var(--ease-snap), background 180ms var(--ease-snap);
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+  transition: color 180ms var(--ease-snap), background 180ms var(--ease-snap);
 }
 .admin-tab:hover { color: var(--text); background: var(--panel-alt); }
-.admin-tab.active { color: var(--gold); border-color: var(--gold-dim); background: var(--panel-alt); }
+.admin-tab.active { color: #17110a; background: linear-gradient(120deg, var(--gold), #ffcf6b); font-weight: 700; }
 .admin-panel { display: none; animation: rise-in 420ms var(--ease-out) forwards; }
 .admin-panel.active { display: block; }
 
