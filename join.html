@@ -42,7 +42,19 @@
       <a href="https://discord.gg/YOUR_INVITE" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:18px;display:inline-block;">Join our Discord</a>
     </div>
     <form class="card reveal" id="apply-form">
-      <h3 style="font-size:1.1rem;margin-bottom:16px;">Application</h3>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+        <div class="scan-ring" aria-hidden="true"></div>
+        <div>
+          <span class="eyebrow" style="font-size:0.65rem;">Tactical intake</span>
+          <h3 style="font-size:1.1rem;margin-top:2px;">Application</h3>
+        </div>
+      </div>
+      <div class="intake-steps" id="intake-steps">
+        <div class="intake-step" data-step="ign"><span class="step-num">01</span><span class="step-label">Callsign</span></div>
+        <div class="intake-step" data-step="rank"><span class="step-num">02</span><span class="step-label">Rank</span></div>
+        <div class="intake-step" data-step="discord"><span class="step-num">03</span><span class="step-label">Discord</span></div>
+        <div class="intake-step" data-step="notes"><span class="step-num">04</span><span class="step-label">Notes</span></div>
+      </div>
       <div class="field">
         <label for="ign">In-game name</label>
         <input id="ign" name="ign" type="text" required>
@@ -60,7 +72,7 @@
         <textarea id="notes" name="notes"></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Submit application</button>
-      <p id="apply-note" style="margin-top:14px;font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);"></p>
+      <p id="apply-note" class="status-chip"><span class="dot"></span><span id="apply-note-text"></span></p>
     </form>
       <div class="card reveal" style="margin-top:32px;">
     <h3 style="font-size:1.1rem;margin-bottom:14px;">Code of conduct</h3>
@@ -79,9 +91,28 @@
 <script src="js/main.js"></script>
 <script src="js/enhancements.js"></script>
 <script>
+  // Live step tracker — purely visual, reflects real field completion,
+  // does not touch validation or submission below.
+  (function () {
+    const stepEls = document.querySelectorAll('#intake-steps .intake-step');
+    function refreshSteps() {
+      stepEls.forEach((step) => {
+        const field = document.getElementById(step.dataset.step);
+        const filled = field && field.value.trim().length > 0;
+        step.classList.toggle('done', Boolean(filled));
+      });
+    }
+    ['ign', 'rank', 'discord', 'notes'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', refreshSteps);
+    });
+    refreshSteps();
+  })();
+
   document.getElementById('apply-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const note = document.getElementById('apply-note');
+    const noteText = document.getElementById('apply-note-text');
     const record = {
       id: 'app' + Date.now(),
       ign: document.getElementById('ign').value,
@@ -92,10 +123,13 @@
     };
     try {
       await apiSave('applicants', record);
-      note.textContent = 'Application received — the clan admins will review it and reach out on Discord.';
+      note.className = 'status-chip success visible';
+      noteText.textContent = 'Application received — the clan admins will review it and reach out on Discord.';
       e.target.reset();
+      document.querySelectorAll('#intake-steps .intake-step').forEach((s) => s.classList.remove('done'));
     } catch (err) {
-      note.textContent = 'Something went wrong submitting your application — please try again in a moment.';
+      note.className = 'status-chip error visible';
+      noteText.textContent = 'Something went wrong submitting your application — please try again in a moment.';
     }
   });
 </script>
