@@ -115,7 +115,8 @@
     // 2. Fallback to localStorage if API unavailable or empty
     if (!item || !item.image_url) {
       const localBracket = localStorage.getItem('himawari_bracket');
-      if (localBracket) {
+      // Validate string before using
+      if (localBracket && (localBracket.startsWith('data:image/') || localBracket.startsWith('http'))) {
         item = { image_url: localBracket, title: 'Tournament Bracket' };
       }
     }
@@ -126,7 +127,7 @@
         <div class="card reveal" style="text-align:center;padding:20px;">
           ${item.title ? `<h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:16px;color:var(--gold);">${item.title}</h3>` : ''}
           <div style="overflow-x:auto;">
-            <img src="${item.image_url}" alt="Tournament Bracket" style="max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line);">
+            <img src="${item.image_url}" alt="Tournament Bracket" style="max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line);" onerror="this.onerror=null; this.parentElement.parentElement.innerHTML='<p style=\\'color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;\\'>Invalid or corrupted bracket image.</p>';">
           </div>
         </div>
       `;
@@ -157,7 +158,6 @@
     if (rawTournaments) {
       try {
         const parsed = JSON.parse(rawTournaments);
-        // Map admin panel format to public matches format
         matches = parsed.map(t => ({
           opponent: t.name || t.opponent || 'Opponent',
           event: t.format || t.event || 'Tournament',
