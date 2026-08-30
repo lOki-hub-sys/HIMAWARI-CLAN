@@ -61,7 +61,54 @@
       </div>
       <div class="field">
         <label for="rank">Current rank</label>
-        <input id="rank" name="rank" type="text" required>
+        <select id="rank" name="rank" required>
+          <option value="" disabled selected>Select your current rank</option>
+          <optgroup label="Rookie">
+            <option value="Rookie I">Rookie I</option>
+            <option value="Rookie II">Rookie II</option>
+            <option value="Rookie III">Rookie III</option>
+            <option value="Rookie IV">Rookie IV</option>
+            <option value="Rookie V">Rookie V</option>
+          </optgroup>
+          <optgroup label="Veteran">
+            <option value="Veteran I">Veteran I</option>
+            <option value="Veteran II">Veteran II</option>
+            <option value="Veteran III">Veteran III</option>
+            <option value="Veteran IV">Veteran IV</option>
+            <option value="Veteran V">Veteran V</option>
+          </optgroup>
+          <optgroup label="Elite">
+            <option value="Elite I">Elite I</option>
+            <option value="Elite II">Elite II</option>
+            <option value="Elite III">Elite III</option>
+            <option value="Elite IV">Elite IV</option>
+            <option value="Elite V">Elite V</option>
+          </optgroup>
+          <optgroup label="Pro">
+            <option value="Pro I">Pro I</option>
+            <option value="Pro II">Pro II</option>
+            <option value="Pro III">Pro III</option>
+            <option value="Pro IV">Pro IV</option>
+            <option value="Pro V">Pro V</option>
+          </optgroup>
+          <optgroup label="Master">
+            <option value="Master I">Master I</option>
+            <option value="Master II">Master II</option>
+            <option value="Master III">Master III</option>
+            <option value="Master IV">Master IV</option>
+            <option value="Master V">Master V</option>
+          </optgroup>
+          <optgroup label="Grandmaster">
+            <option value="Grandmaster I">Grandmaster I</option>
+            <option value="Grandmaster II">Grandmaster II</option>
+            <option value="Grandmaster III">Grandmaster III</option>
+            <option value="Grandmaster IV">Grandmaster IV</option>
+            <option value="Grandmaster V">Grandmaster V</option>
+          </optgroup>
+          <optgroup label="Legendary">
+            <option value="Legendary">Legendary</option>
+          </optgroup>
+        </select>
       </div>
       <div class="field">
         <label for="discord">Discord handle</label>
@@ -104,7 +151,10 @@
     }
     ['ign', 'rank', 'discord', 'notes'].forEach((id) => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('input', refreshSteps);
+      if (el) {
+        el.addEventListener('input', refreshSteps);
+        el.addEventListener('change', refreshSteps);
+      }
     });
     refreshSteps();
   })();
