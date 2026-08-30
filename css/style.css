@@ -503,6 +503,43 @@ h1, h2, h3, h4 {
   .hero-visual-readout span:first-child::before { animation: none; }
 }
 
+/* ---------- War Room hero: reuses the hero-grid split with a map visual ---------- */
+.hero.hero-warroom { text-align: left; }
+.hero.hero-warroom .hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.9fr);
+  gap: clamp(28px, 5vw, 56px);
+  align-items: center;
+}
+.warroom-map {
+  min-height: clamp(200px, 26vw, 300px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 12px;
+}
+.warroom-map-svg { width: 100%; height: auto; display: block; }
+.warroom-path {
+  stroke-dashoffset: 0;
+  animation: warroom-dash 3.5s linear infinite;
+}
+@keyframes warroom-dash { to { stroke-dashoffset: -20; } }
+.warroom-point circle:first-child { animation: pulse-dot 2.2s ease-in-out infinite; transform-origin: center; }
+.warroom-point:nth-child(2) circle:first-child { animation-delay: 0.4s; }
+.warroom-point:nth-child(3) circle:first-child { animation-delay: 0.8s; }
+.warroom-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  fill: var(--gold);
+}
+@media (max-width: 860px) {
+  .hero.hero-warroom .hero-grid { grid-template-columns: 1fr; }
+  .warroom-map { order: -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .warroom-path, .warroom-point circle:first-child { animation: none; }
+}
+
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex;

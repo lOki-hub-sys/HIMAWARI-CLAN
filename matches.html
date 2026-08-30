@@ -23,11 +23,44 @@
   <button class="nav-toggle" aria-label="Toggle menu">☰</button>
 </nav>
 
-<header class="hero" style="padding-bottom:40px;">
+<header class="hero hero-warroom" style="padding-bottom:40px;">
   <div class="container">
-    <span class="eyebrow">War Room</span>
-    <h1 style="font-size:clamp(2rem,5vw,3.2rem);margin-top:12px;">Matches</h1>
-    <p class="lede" style="margin-top:14px;">Recent results and what's on the calendar next.</p>
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">War Room</span>
+        <h1 style="font-size:clamp(2rem,5vw,3.2rem);margin-top:12px;">Matches</h1>
+        <p class="lede" style="margin-top:14px;">Recent results and what's on the calendar next.</p>
+      </div>
+      <div class="hero-visual warroom-map reveal" data-dir="scale" aria-hidden="true">
+        <svg viewBox="0 0 320 260" class="warroom-map-svg">
+          <defs>
+            <pattern id="warroom-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,176,32,0.12)" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect x="10" y="10" width="300" height="240" fill="url(#warroom-grid)" stroke="rgba(255,176,32,0.25)" stroke-width="1"/>
+          <path d="M 60 190 L 120 130 L 210 150 L 250 70" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="5 5" class="warroom-path"/>
+          <g class="warroom-point" transform="translate(60,190)">
+            <circle r="16" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.4"/>
+            <circle r="9" fill="var(--panel)" stroke="var(--gold)" stroke-width="1.5"/>
+            <text x="0" y="4" text-anchor="middle" class="warroom-label">B</text>
+          </g>
+          <g class="warroom-point" transform="translate(210,150)">
+            <circle r="16" fill="none" stroke="var(--gold)" stroke-width="1" opacity="0.4"/>
+            <circle r="9" fill="var(--panel)" stroke="var(--gold)" stroke-width="1.5"/>
+            <text x="0" y="4" text-anchor="middle" class="warroom-label">B</text>
+          </g>
+          <g class="warroom-point" transform="translate(250,70)">
+            <circle r="16" fill="none" stroke="var(--ember)" stroke-width="1" opacity="0.4"/>
+            <circle r="9" fill="var(--panel)" stroke="var(--ember)" stroke-width="1.5"/>
+            <text x="0" y="4" text-anchor="middle" class="warroom-label" style="fill:var(--ember);">C</text>
+          </g>
+        </svg>
+        <div class="hero-visual-readout" style="left:auto;right:4%;bottom:auto;top:4%;">
+          <span>Map overview</span>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
