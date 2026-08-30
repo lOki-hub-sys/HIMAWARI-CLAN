@@ -279,3 +279,99 @@ html { scrollbar-color: var(--panel-alt) var(--bg-deep); scrollbar-width: thin; 
   border-color: var(--gold);
   box-shadow: 0 0 12px rgba(255, 176, 32, 0.25);
 }
+
+/* ---------- Tactical Intake Portal (Join page) ---------- */
+.intake-steps {
+  display: flex;
+  gap: 8px;
+  margin: -4px 0 22px;
+  flex-wrap: wrap;
+}
+.intake-step {
+  flex: 1;
+  min-width: 90px;
+  padding: 8px 10px 9px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-bottom: 2px solid var(--line);
+  transition: border-color 260ms var(--ease-snap), background 260ms var(--ease-snap);
+}
+.intake-step .step-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  transition: color 260ms var(--ease-snap);
+}
+.intake-step .step-num {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+.intake-step.done {
+  border-bottom-color: var(--gold);
+  background: rgba(255, 176, 32, 0.06);
+}
+.intake-step.done .step-label { color: var(--gold); }
+
+/* Ambient biometric-scan ring — decorative only, not a status indicator */
+.scan-ring {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  position: relative;
+  flex-shrink: 0;
+}
+.scan-ring::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-top-color: var(--gold);
+  animation: scan-ring-spin 2.4s linear infinite;
+}
+.scan-ring::after {
+  content: '';
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.5;
+  animation: scan-ring-pulse 2.4s var(--ease-out) infinite;
+}
+@keyframes scan-ring-spin { to { transform: rotate(360deg); } }
+@keyframes scan-ring-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* Submit status chip — replaces the plain text note */
+.status-chip {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  border: 1px solid var(--line);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 260ms var(--ease-snap), transform 260ms var(--ease-snap);
+}
+.status-chip.visible { display: flex; opacity: 1; transform: translateY(0); }
+.status-chip.success { border-color: rgba(126, 231, 135, 0.5); color: #7ee787; background: rgba(126, 231, 135, 0.06); }
+.status-chip.error { border-color: rgba(255, 68, 51, 0.5); color: var(--ember); background: rgba(255, 68, 51, 0.06); }
+.status-chip .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px 1px currentColor;
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-ring::before, .scan-ring::after { animation: none; }
+}
