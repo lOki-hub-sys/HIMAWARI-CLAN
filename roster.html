@@ -82,7 +82,7 @@
     return;
   }
 
-  // Group by tier, falling back to 'Member' for anything unrecognized
+  // Group members by tier
   const groups = {};
   TIER_ORDER.forEach((t) => (groups[t] = []));
   roster.forEach((m) => {
@@ -93,12 +93,12 @@
   const activeTiers = TIER_ORDER.filter((t) => groups[t].length > 0);
   const total = roster.length;
 
-  // ---------- Sidebar: rank tally ----------
-  const tallyHtml = activeTiers.map((tier, i) => {
+  // Sidebar: rank tally items
+  const tallyHtml = activeTiers.map((tier) => {
     const count = groups[tier].length;
     const pct = Math.round((count / total) * 100);
     return `
-      <div class="rank-tally-item${i === 0 ? ' active' : ''}" data-tier="${tier}" role="button" tabindex="0">
+      <div class="rank-tally-item" data-tier="${tier}" role="button" tabindex="0">
         <div class="rank-tally-row">
           <span class="rank-tally-name">${tier}</span>
           <span>${count}</span>
@@ -108,7 +108,7 @@
     `;
   }).join('');
 
-  // ---------- Sidebar: clan news (latest 2 announcements) ----------
+  // Sidebar: news announcements
   const newsItems = announcements.slice(0, 2);
   const newsHtml = newsItems.length
     ? newsItems.map((a) => `
@@ -119,14 +119,15 @@
       `).join('')
     : '<p style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">No announcements yet.</p>';
 
-  // ---------- Tabs ----------
-  const tabsHtml = activeTiers.map((tier, i) =>
-    `<button class="roster-tab${i === 0 ? ' active' : ''}" data-tier="${tier}">${tier}</button>`
-  ).join('');
+  // Tabs: includes 'ALL' tab + individual rank tabs
+  const tabsHtml = `
+    <button class="roster-tab active" data-tier="ALL">All</button>
+    ${activeTiers.map((tier) => `<button class="roster-tab" data-tier="${tier}">${tier}</button>`).join('')}
+  `;
 
-  // ---------- Operator grid cards ----------
+  // Build Operator Cards
   let opCounter = 0;
-  function cardHtml(m, isFirstOfAll) {
+  function cardHtml(m) {
     opCounter += 1;
     const initials = m.initials || getInitials(m.name);
     const avatarHtml = m.avatar_url
@@ -134,7 +135,7 @@
       : escapeHtml(initials);
 
     return `
-      <div class="operator-card${isFirstOfAll ? ' active' : ''}"
+      <div class="operator-card"
         data-id="${escapeHtml(String(m.id))}"
         data-name="${escapeHtml(m.name)}"
         data-tier="${escapeHtml(m.tier || 'Member')}"
@@ -157,15 +158,11 @@
     `;
   }
 
-  let firstAssigned = false;
+  // Generate section layout
   const sectionsHtml = activeTiers.map((tier) => {
-    const cards = groups[tier].map((m) => {
-      const isFirst = !firstAssigned;
-      if (isFirst) firstAssigned = true;
-      return cardHtml(m, isFirst);
-    }).join('');
+    const cards = groups[tier].map((m) => cardHtml(m)).join('');
     return `
-      <div class="roster-section" id="section-${tier}">
+      <div class="roster-section" id="section-${tier}" data-section-tier="${tier}">
         <div class="roster-section-title">${tier}</div>
         <div class="operator-grid">${cards}</div>
       </div>
@@ -198,10 +195,11 @@
     </main>
   `;
 
-  // ---------- Detail panel rendering ----------
+  // Render detail view panel
   const detailEl = document.getElementById('operator-detail');
 
   function renderDetail(card) {
+    if (!card) return;
     const avatarHtml = card.dataset.avatar
       ? `<img src="${escapeHtml(card.dataset.avatar)}" alt="">`
       : escapeHtml(card.dataset.initials);
@@ -215,12 +213,12 @@
       <div class="op-detail-avatar">${avatarHtml}</div>
       <div>
         <span class="op-detail-tier">${card.dataset.tier || 'Member'}</span>
-        <h2>${card.dataset.name}</h2>
-        <div class="op-detail-role">${card.dataset.role || '—'}</div>
+        <h2>${escapeHtml(card.dataset.name)}</h2>
+        <div class="op-detail-role">${escapeHtml(card.dataset.role || '—')}</div>
         <div class="op-detail-fields">
-          <div class="op-detail-field"><div class="k">K/D Ratio</div><div class="v">${card.dataset.kd || '—'}</div></div>
-          <div class="op-detail-field"><div class="k">Loadout</div><div class="v">${card.dataset.loadout || '—'}</div></div>
-          <div class="op-detail-field"><div class="k">Details</div><div class="v">${card.dataset.meta || '—'}</div></div>
+          <div class="op-detail-field"><div class="k">K/D Ratio</div><div class="v">${escapeHtml(card.dataset.kd || '—')}</div></div>
+          <div class="op-detail-field"><div class="k">Loadout</div><div class="v">${escapeHtml(card.dataset.loadout || '—')}</div></div>
+          <div class="op-detail-field"><div class="k">Details</div><div class="v">${escapeHtml(card.dataset.meta || '—')}</div></div>
         </div>
         ${links.length ? `<div class="op-detail-socials">${links.join('')}</div>` : ''}
       </div>
@@ -231,7 +229,6 @@
     document.querySelectorAll('.operator-card').forEach((c) => c.classList.remove('active'));
     card.classList.add('active');
     renderDetail(card);
-    detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   document.querySelectorAll('.operator-card').forEach((card) => {
@@ -244,30 +241,43 @@
     });
   });
 
-  const initialCard = document.querySelector('.operator-card.active') || document.querySelector('.operator-card');
-  if (initialCard) renderDetail(initialCard);
+  // Strict Filter Logic for Tabs & Sidebar
+  function filterByTier(tier) {
+    // Highlight matching tab
+    document.querySelectorAll('.roster-tab').forEach((el) => {
+      el.classList.toggle('active', el.dataset.tier === tier);
+    });
 
-  // ---------- Tab click = scroll to section, tally click = same ----------
-  function setActiveTier(tier) {
-    document.querySelectorAll('.roster-tab').forEach((el) => el.classList.toggle('active', el.dataset.tier === tier));
-    document.querySelectorAll('.rank-tally-item').forEach((el) => el.classList.toggle('active', el.dataset.tier === tier));
+    // Highlight matching rank tally item in sidebar
+    document.querySelectorAll('.rank-tally-item').forEach((el) => {
+      el.classList.toggle('active', el.dataset.tier === tier);
+    });
+
+    // Show/Hide matching sections
+    const sections = document.querySelectorAll('.roster-section');
+    sections.forEach((sec) => {
+      if (tier === 'ALL' || sec.dataset.sectionTier === tier) {
+        sec.style.display = 'block';
+      } else {
+        sec.style.display = 'none';
+      }
+    });
+
+    // Select the first visible card in the filtered view
+    const visibleCard = document.querySelector('.roster-section[style*="display: block"] .operator-card') || document.querySelector('.operator-card');
+    if (visibleCard) {
+      selectCard(visibleCard);
+    }
   }
 
+  // Attach tab click events
   document.querySelectorAll('.roster-tab').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const tier = btn.dataset.tier;
-      setActiveTier(tier);
-      document.getElementById(`section-${tier}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+    btn.addEventListener('click', () => filterByTier(btn.dataset.tier));
   });
 
+  // Attach sidebar rank tally click events
   document.querySelectorAll('.rank-tally-item').forEach((item) => {
-    const handleSelect = () => {
-      const tier = item.dataset.tier;
-      setActiveTier(tier);
-      document.getElementById(`section-${tier}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
+    const handleSelect = () => filterByTier(item.dataset.tier);
     item.addEventListener('click', handleSelect);
     item.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -277,19 +287,9 @@
     });
   });
 
-  // Scrollspy — highlight the tab/tally entry for whichever section is in view
-  const sectionEls = activeTiers.map((t) => document.getElementById(`section-${t}`)).filter(Boolean);
-  if ('IntersectionObserver' in window && sectionEls.length) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const tier = entry.target.id.replace('section-', '');
-          setActiveTier(tier);
-        }
-      });
-    }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
-    sectionEls.forEach((el) => observer.observe(el));
-  }
+  // Default selection on load
+  const firstCard = document.querySelector('.operator-card');
+  if (firstCard) selectCard(firstCard);
 })();
 </script>
 </body>
