@@ -32,7 +32,7 @@
   <div class="grid grid-2">
     <div class="card reveal">
       <h3 style="font-size:1.1rem;margin-bottom:14px;">What we look for</h3>
-           <ul style="color:var(--text-dim);padding-left:18px;line-height:1.9;">
+      <ul style="color:var(--text-dim);padding-left:18px;line-height:1.9;">
         <li><strong>Rank:</strong> Diamond+ or equivalent competitive experience</li>
         <li><strong>Age:</strong> 18+ preferred, exceptions considered case-by-case</li>
         <li><strong>Region:</strong> NA (ping under 40ms to our scrim server)</li>
@@ -51,18 +51,52 @@
       </div>
       <div class="intake-steps" id="intake-steps">
         <div class="intake-step" data-step="ign"><span class="step-num">01</span><span class="step-label">Callsign</span></div>
-        <div class="intake-step" data-step="rank"><span class="step-num">02</span><span class="step-label">Rank</span></div>
-        <div class="intake-step" data-step="discord"><span class="step-num">03</span><span class="step-label">Discord</span></div>
-        <div class="intake-step" data-step="notes"><span class="step-num">04</span><span class="step-label">Notes</span></div>
+        <div class="intake-step" data-step="uid"><span class="step-num">02</span><span class="step-label">UID</span></div>
+        <div class="intake-step" data-step="rank"><span class="step-num">03</span><span class="step-label">Rank</span></div>
+        <div class="intake-step" data-step="discord"><span class="step-num">04</span><span class="step-label">Discord</span></div>
+        <div class="intake-step" data-step="screenshot"><span class="step-num">05</span><span class="step-label">Proof</span></div>
+        <div class="intake-step" data-step="notes"><span class="step-num">06</span><span class="step-label">Notes</span></div>
       </div>
       <div class="field">
         <label for="ign">In-game name</label>
         <input id="ign" name="ign" type="text" required>
       </div>
       <div class="field">
+        <label for="uid">CODM Player UID</label>
+        <input id="uid" name="uid" type="text" placeholder="e.g., 6741234567890123456" pattern="[0-9]+" required>
+      </div>
+      <div class="field">
         <label for="rank">Current rank</label>
         <select id="rank" name="rank" required>
           <option value="" disabled selected>Select your current rank</option>
+          <optgroup label="Rookie">
+            <option value="Rookie I">Rookie I</option>
+            <option value="Rookie II">Rookie II</option>
+            <option value="Rookie III">Rookie III</option>
+            <option value="Rookie IV">Rookie IV</option>
+            <option value="Rookie V">Rookie V</option>
+          </optgroup>
+          <optgroup label="Veteran">
+            <option value="Veteran I">Veteran I</option>
+            <option value="Veteran II">Veteran II</option>
+            <option value="Veteran III">Veteran III</option>
+            <option value="Veteran IV">Veteran IV</option>
+            <option value="Veteran V">Veteran V</option>
+          </optgroup>
+          <optgroup label="Elite">
+            <option value="Elite I">Elite I</option>
+            <option value="Elite II">Elite II</option>
+            <option value="Elite III">Elite III</option>
+            <option value="Elite IV">Elite IV</option>
+            <option value="Elite V">Elite V</option>
+          </optgroup>
+          <optgroup label="Pro">
+            <option value="Pro I">Pro I</option>
+            <option value="Pro II">Pro II</option>
+            <option value="Pro III">Pro III</option>
+            <option value="Pro IV">Pro IV</option>
+            <option value="Pro V">Pro V</option>
+          </optgroup>
           <optgroup label="Master">
             <option value="Master I">Master I</option>
             <option value="Master II">Master II</option>
@@ -78,8 +112,8 @@
             <option value="Grandmaster V">Grandmaster V</option>
           </optgroup>
           <optgroup label="Legendary">
-            <option value="Legendary">Legendary</option
-           <option value="Legendary 10k ">Legendary</option
+            <option value="Legendary">Legendary</option>
+            <option value="Legendary Top 5000">Legendary (Top 5000)</option>
           </optgroup>
         </select>
       </div>
@@ -88,20 +122,25 @@
         <input id="discord" name="discord" type="text" required>
       </div>
       <div class="field">
+        <label for="screenshot">Profile Screenshot (Rank & Stats)</label>
+        <input id="screenshot" name="screenshot" type="file" accept="image/*" required>
+      </div>
+      <div class="field">
         <label for="notes">Anything else we should know?</label>
         <textarea id="notes" name="notes"></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Submit application</button>
       <p id="apply-note" class="status-chip"><span class="dot"></span><span id="apply-note-text"></span></p>
     </form>
-      <div class="card reveal" style="margin-top:32px;">
-    <h3 style="font-size:1.1rem;margin-bottom:14px;">Code of conduct</h3>
-    <ul style="color:var(--text-dim);padding-left:18px;line-height:1.9;">
-      <li>No toxicity toward teammates, opponents, or casters — on comms or in public chat</li>
-      <li>Message the team lead if you'll miss a scheduled scrim or practice; repeated no-shows put your roster spot at risk</li>
-      <li>Show up on time and ready — loadouts set, mic tested, before the scrim block starts</li>
-      <li>Represent the clan tag professionally in tournaments, streams, and public matches</li>
-    </ul>
+    <div class="card reveal" style="margin-top:32px;">
+      <h3 style="font-size:1.1rem;margin-bottom:14px;">Code of conduct</h3>
+      <ul style="color:var(--text-dim);padding-left:18px;line-height:1.9;">
+        <li>No toxicity toward teammates, opponents, or casters — on comms or in public chat</li>
+        <li>Message the team lead if you'll miss a scheduled scrim or practice; repeated no-shows put your roster spot at risk</li>
+        <li>Show up on time and ready — loadouts set, mic tested, before the scrim block starts</li>
+        <li>Represent the clan tag professionally in tournaments, streams, and public matches</li>
+      </ul>
+    </div>
   </div>
 </section>
 <footer class="site-footer">
@@ -111,18 +150,24 @@
 <script src="js/main.js"></script>
 <script src="js/enhancements.js"></script>
 <script>
-  // Live step tracker — purely visual, reflects real field completion,
-  // does not touch validation or submission below.
+  // Live step tracker — purely visual, reflects real field completion
   (function () {
     const stepEls = document.querySelectorAll('#intake-steps .intake-step');
     function refreshSteps() {
       stepEls.forEach((step) => {
         const field = document.getElementById(step.dataset.step);
-        const filled = field && field.value.trim().length > 0;
+        let filled = false;
+        if (field) {
+          if (field.type === 'file') {
+            filled = field.files && field.files.length > 0;
+          } else {
+            filled = field.value.trim().length > 0;
+          }
+        }
         step.classList.toggle('done', Boolean(filled));
       });
     }
-    ['ign', 'rank', 'discord', 'notes'].forEach((id) => {
+    ['ign', 'uid', 'rank', 'discord', 'screenshot', 'notes'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) {
         el.addEventListener('input', refreshSteps);
@@ -132,15 +177,38 @@
     refreshSteps();
   })();
 
+  // Utility to convert uploaded file into base64 for saving
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(file);
+    });
+  }
+
   document.getElementById('apply-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const note = document.getElementById('apply-note');
     const noteText = document.getElementById('apply-note-text');
+    
+    const fileInput = document.getElementById('screenshot');
+    let screenshotBase64 = '';
+    if (fileInput.files.length > 0) {
+      try {
+        screenshotBase64 = await fileToBase64(fileInput.files[0]);
+      } catch (err) {
+        console.error('Failed to read image file:', err);
+      }
+    }
+
     const record = {
       id: 'app' + Date.now(),
       ign: document.getElementById('ign').value,
+      uid: document.getElementById('uid').value,
       rank: document.getElementById('rank').value,
       discord: document.getElementById('discord').value,
+      screenshot: screenshotBase64,
       notes: document.getElementById('notes').value,
       date: new Date().toISOString().slice(0, 10),
     };
