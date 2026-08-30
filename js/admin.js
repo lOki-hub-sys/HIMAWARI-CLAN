@@ -2,6 +2,18 @@
    HIMAWARI CLAN — Admin Control Room Script (admin.js)
    Handles demo authentication, tab navigation, applicant management,
    announcements, roster updates, tournaments, and bracket generation.
+<<<<<<< Updated upstream
+=======
+
+   Data for announcements / roster / tournaments / applicants is now
+   read from and written to the live D1-backed API (/api/<table>),
+   not localStorage. Login and the bracket generator remain purely
+   client-side, unchanged.
+
+   CHANGE FROM PREVIOUS VERSION: the roster module now reads/writes a
+   `tier` field (Leadership / Admin / Officer / Member) alongside the
+   existing free-text `role`. Everything else is unchanged.
+>>>>>>> Stashed changes
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {

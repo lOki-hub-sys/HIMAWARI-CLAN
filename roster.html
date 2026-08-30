@@ -36,6 +36,27 @@
   <span>Managed via the clan admin panel</span>
 </footer>
 
+<!-- Profile modal -->
+<div class="roster-modal-overlay" id="roster-modal-overlay">
+  <div class="roster-modal">
+    <button class="roster-modal-close" id="roster-modal-close" aria-label="Close">✕</button>
+    <div class="roster-row-avatar" id="modal-avatar"></div>
+    <h3 id="modal-name"></h3>
+    <div class="roster-modal-field">
+      <div class="k">Clan rank</div>
+      <div class="v" id="modal-tier"></div>
+    </div>
+    <div class="roster-modal-field">
+      <div class="k">Role</div>
+      <div class="v" id="modal-role"></div>
+    </div>
+    <div class="roster-modal-field">
+      <div class="k">Details</div>
+      <div class="v" id="modal-meta"></div>
+    </div>
+  </div>
+</div>
+
 <script src="js/main.js"></script>
 <script src="js/enhancements.js"></script>
 <script>
@@ -52,6 +73,7 @@
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
+<<<<<<< Updated upstream
 
   function getInitials(name) {
     if (!name) return '??';
@@ -273,6 +295,156 @@
     });
   });
 
+=======
+
+  function getInitials(name) {
+    if (!name) return '??';
+    const parts = name.trim().split(/[\s_-]+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  let roster = [];
+  let announcements = [];
+
+  try {
+    const [rosterRes, announceRes] = await Promise.all([
+      fetch('/api/roster'),
+      fetch('/api/announcements').catch(() => null)
+    ]);
+    if (!rosterRes.ok) throw new Error('Failed to fetch roster');
+    roster = await rosterRes.json();
+    if (announceRes && announceRes.ok) announcements = await announceRes.json();
+  } catch (e) {
+    console.error('Roster error:', e);
+    shell.innerHTML = '<div style="padding:48px;color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">Could not load the roster right now.</div>';
+    return;
+  }
+
+  if (!roster || roster.length === 0) {
+    shell.innerHTML = '<div style="padding:48px;color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No roster members found.</div>';
+    return;
+  }
+
+  // Group by tier, falling back to 'Member' for anything unrecognized
+  const groups = {};
+  TIER_ORDER.forEach((t) => (groups[t] = []));
+  roster.forEach((m) => {
+    const tier = TIER_ORDER.includes(m.tier) ? m.tier : 'Member';
+    groups[tier].push(m);
+  });
+
+  const activeTiers = TIER_ORDER.filter((t) => groups[t].length > 0);
+  const total = roster.length;
+
+  // ---------- Sidebar: rank tally ----------
+  const tallyHtml = activeTiers.map((tier, i) => {
+    const count = groups[tier].length;
+    const pct = Math.round((count / total) * 100);
+    return `
+      <div class="rank-tally-item${i === 0 ? ' active' : ''}" data-tier="${tier}">
+        <div class="rank-tally-row">
+          <span class="rank-tally-name">${tier}</span>
+          <span>${count}</span>
+        </div>
+        <div class="rank-tally-bar-track"><div class="rank-tally-bar-fill" style="width:${pct}%;"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  // ---------- Sidebar: clan news (latest 2 announcements) ----------
+  const newsItems = announcements.slice(0, 2);
+  const newsHtml = newsItems.length
+    ? newsItems.map((a) => `
+        <div class="sidebar-news-item">
+          <span class="eyebrow">${escapeHtml(a.date || '')}</span>
+          <p>${escapeHtml(a.title)}</p>
+        </div>
+      `).join('')
+    : '<p style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);">No announcements yet.</p>';
+
+  // ---------- Tabs ----------
+  const tabsHtml = activeTiers.map((tier, i) =>
+    `<button class="roster-tab${i === 0 ? ' active' : ''}" data-tier="${tier}">${tier}</button>`
+  ).join('');
+
+  // ---------- Sections + rows ----------
+  function rowHtml(m) {
+    const initials = m.initials || getInitials(m.name);
+    return `
+      <div class="roster-row">
+        <div class="roster-row-avatar">${escapeHtml(initials)}</div>
+        <div class="roster-row-body">
+          <div class="name-line">
+            ${escapeHtml(m.name)}
+            <span class="role-pill">${escapeHtml(m.role || 'Member')}</span>
+          </div>
+          <div class="meta-line">${escapeHtml(m.meta || '')}</div>
+        </div>
+        <button class="btn btn-ghost view-profile-btn"
+          data-name="${escapeHtml(m.name)}"
+          data-tier="${escapeHtml(m.tier || 'Member')}"
+          data-role="${escapeHtml(m.role || '')}"
+          data-meta="${escapeHtml(m.meta || '')}"
+          data-initials="${escapeHtml(initials)}">
+          View Profile
+        </button>
+      </div>
+    `;
+  }
+
+  const sectionsHtml = activeTiers.map((tier) => `
+    <div class="roster-section" id="section-${tier}">
+      <div class="roster-section-title">${tier}</div>
+      <div class="roster-rows">${groups[tier].map(rowHtml).join('')}</div>
+    </div>
+  `).join('');
+
+  shell.innerHTML = `
+    <aside class="roster-sidebar">
+      <div class="roster-sidebar-head"><span class="emblem"></span> Himawari</div>
+      <div>
+        <div class="sidebar-label">Clan Ranks</div>
+        <div class="rank-tally" id="rank-tally">${tallyHtml}</div>
+      </div>
+      <div class="sidebar-news">
+        <div class="sidebar-label">Clan News</div>
+        ${newsHtml}
+      </div>
+    </aside>
+    <main class="roster-main">
+      <div class="roster-main-head">
+        <h1>Roster <span class="accent">/ Himawari Clan</span></h1>
+        <p class="sub">Displaying ${total} active member${total === 1 ? '' : 's'}</p>
+      </div>
+      <nav class="roster-tabs" id="roster-tabs">${tabsHtml}</nav>
+      ${sectionsHtml}
+    </main>
+  `;
+
+  // ---------- Tab click = scroll to section, tally click = same ----------
+  function setActiveTier(tier) {
+    document.querySelectorAll('.roster-tab').forEach((el) => el.classList.toggle('active', el.dataset.tier === tier));
+    document.querySelectorAll('.rank-tally-item').forEach((el) => el.classList.toggle('active', el.dataset.tier === tier));
+  }
+
+  document.querySelectorAll('.roster-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tier = btn.dataset.tier;
+      setActiveTier(tier);
+      document.getElementById(`section-${tier}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  document.querySelectorAll('.rank-tally-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const tier = item.dataset.tier;
+      setActiveTier(tier);
+      document.getElementById(`section-${tier}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+>>>>>>> Stashed changes
   // Scrollspy — highlight the tab/tally entry for whichever section is in view
   const sectionEls = activeTiers.map((t) => document.getElementById(`section-${t}`)).filter(Boolean);
   if ('IntersectionObserver' in window && sectionEls.length) {
@@ -286,6 +458,29 @@
     }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
     sectionEls.forEach((el) => observer.observe(el));
   }
+<<<<<<< Updated upstream
+=======
+
+  // ---------- Profile modal ----------
+  const overlay = document.getElementById('roster-modal-overlay');
+  const modalClose = document.getElementById('roster-modal-close');
+
+  document.querySelectorAll('.view-profile-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.getElementById('modal-avatar').textContent = btn.dataset.initials;
+      document.getElementById('modal-name').textContent = btn.dataset.name;
+      document.getElementById('modal-tier').textContent = btn.dataset.tier;
+      document.getElementById('modal-role').textContent = btn.dataset.role || '—';
+      document.getElementById('modal-meta').textContent = btn.dataset.meta || '—';
+      overlay.classList.add('open');
+    });
+  });
+
+  function closeModal() { overlay.classList.remove('open'); }
+  modalClose.addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+>>>>>>> Stashed changes
 })();
 </script>
 </body>
