@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/enhancements.css">
 </head>
 <body data-page="roster">
 
@@ -70,6 +71,7 @@
 </div>
 
 <script src="js/main.js"></script>
+<script src="js/enhancements.js"></script>
 <script>
 (async () => {
   const TIER_ORDER = ['Leadership', 'Admin', 'Officer', 'Member'];
@@ -130,7 +132,7 @@
     const count = groups[tier].length;
     const pct = Math.round((count / total) * 100);
     return `
-      <div class="rank-tally-item${i === 0 ? ' active' : ''}" data-tier="${tier}">
+      <div class="rank-tally-item${i === 0 ? ' active' : ''}" data-tier="${tier}" role="button" tabindex="0">
         <div class="rank-tally-row">
           <span class="rank-tally-name">${tier}</span>
           <span>${count}</span>
@@ -235,10 +237,18 @@
   });
 
   document.querySelectorAll('.rank-tally-item').forEach((item) => {
-    item.addEventListener('click', () => {
+    const handleSelect = () => {
       const tier = item.dataset.tier;
       setActiveTier(tier);
       document.getElementById(`section-${tier}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    item.addEventListener('click', handleSelect);
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleSelect();
+      }
     });
   });
 
