@@ -112,8 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function initInteractiveMotion() {
     if (prefersReducedMotion || isTouchDevice) return;
 
-    // 3D Card Tilt
-    const cards = document.querySelectorAll('.stat-card, .roster-card, .news-card, .feature-card, .gallery-item');
+    // 3D Card Tilt — targets the site's actual HUD-panel classes
+    // (previously targeted classes that don't exist in the markup,
+    // so the effect never ran; this wires it up for real).
+    const cards = document.querySelectorAll('.card, .stat, .gallery-tile, .match, .login-box');
     cards.forEach(card => {
       card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
@@ -122,14 +124,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
 
-        const rotateX = ((y - centerY) / centerY) * -5;
-        const rotateY = ((x - centerX) / centerX) * 5;
+        const rotateX = ((y - centerY) / centerY) * -4;
+        const rotateY = ((x - centerX) / centerX) * 4;
 
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-2px)`;
+        card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px) scale(1.012)`;
       });
 
       card.addEventListener('mouseleave', () => {
-        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+        card.style.transform = '';
       });
     });
 
@@ -146,6 +148,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
       btn.addEventListener('mouseleave', () => {
         btn.style.transform = 'translate(0px, 0px)';
+      });
+    });
+  }
+
+  /* 4b. Cursor-tracking scan glow on HUD panels (mirrors the hero glow,
+     applied per-panel via CSS custom properties — purely additive). */
+  function initPanelScan() {
+    if (prefersReducedMotion || isTouchDevice) return;
+    const panels = document.querySelectorAll('.card, .stat, .gallery-tile, .match');
+    panels.forEach(panel => {
+      panel.addEventListener('mousemove', (e) => {
+        const rect = panel.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        panel.style.setProperty('--px', `${x}%`);
+        panel.style.setProperty('--py', `${y}%`);
       });
     });
   }
@@ -173,5 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroGlow();
   initScrambleStats();
   initInteractiveMotion();
+  initPanelScan();
   initAdminTabFlicker();
 });
