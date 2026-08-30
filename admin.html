@@ -60,7 +60,7 @@
       <button class="admin-tab" data-tab="roster">Roster</button>
       <button class="admin-tab" data-tab="applicants">Applicants <span id="applicant-count-badge" class="tab-badge" style="display:none;"></span></button>
       <button class="admin-tab" data-tab="tournaments">Tournaments</button>
-      <button class="admin-tab" data-tab="bracket">Bracket generator</button>
+      <button class="admin-tab" data-tab="bracket">Bracket image</button>
     </nav>
 
     <!-- ---------- Announcements ---------- -->
@@ -205,27 +205,36 @@
       </div>
     </div>
 
-    <!-- ---------- Bracket generator ---------- -->
+    <!-- ---------- Bracket upload ---------- -->
     <div class="admin-panel" id="panel-bracket">
-      <div class="card reveal">
-        <h3 style="font-size:1.1rem;margin-bottom:16px;">Generate a bracket</h3>
-        <div class="field">
-          <label for="bracket-teams">Team names (one per line)</label>
-          <textarea id="bracket-teams" placeholder="Team Alpha&#10;Team Bravo&#10;Team Charlie&#10;Team Delta"></textarea>
+      <div class="grid grid-2">
+        <form class="card reveal" id="bracket-upload-form">
+          <h3 style="font-size:1.1rem;margin-bottom:16px;">Upload Bracket Image</h3>
+          
+          <div class="field">
+            <label for="bracket-title-input">Tournament / Bracket Title</label>
+            <input id="bracket-title-input" type="text" placeholder="e.g. Himawari Clan Championship 2026" required>
+          </div>
+
+          <div class="field">
+            <label for="bracket-image-input">Select Bracket Image</label>
+            <input id="bracket-image-input" type="file" accept="image/*" required>
+          </div>
+
+          <button id="bracket-upload-btn" type="submit" class="btn btn-primary">Upload Bracket Image</button>
+
+          <div id="bracket-upload-note" class="status-chip" style="margin-top:14px; display:none;">
+            <span id="bracket-upload-note-text"></span>
+          </div>
+        </form>
+
+        <div class="card reveal">
+          <h3 style="font-size:1.1rem;margin-bottom:16px;">Current Bracket Image</h3>
+          <div id="bracket-preview">
+            <p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No bracket image uploaded yet.</p>
+          </div>
         </div>
-        <div class="field">
-          <label for="bracket-format">Format</label>
-          <select id="bracket-format">
-            <option value="auto">Auto</option>
-            <option value="single">Single elimination</option>
-            <option value="double">Double elimination</option>
-            <option value="round-robin">Round robin</option>
-          </select>
-        </div>
-        <button id="bracket-generate" type="button" class="btn btn-primary">Generate bracket</button>
-        <p id="bracket-note" style="margin-top:14px;font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);"></p>
       </div>
-      <div id="bracket-output" style="margin-top:24px;"></div>
     </div>
   </section>
 </div>
