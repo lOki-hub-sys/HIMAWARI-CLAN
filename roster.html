@@ -36,40 +36,6 @@
   <span>Managed via the clan admin panel</span>
 </footer>
 
-<!-- Profile modal -->
-<div class="roster-modal-overlay" id="roster-modal-overlay">
-  <div class="roster-modal">
-    <button class="roster-modal-close" id="roster-modal-close" aria-label="Close">✕</button>
-    <div class="roster-row-avatar" id="modal-avatar" style="width:64px;height:64px;margin:0 auto 16px;font-size:1.4rem;"></div>
-    <h3 id="modal-name" style="text-align:center;margin-bottom:20px;"></h3>
-    
-    <div class="roster-modal-field">
-      <div class="k">Clan rank</div>
-      <div class="v" id="modal-tier"></div>
-    </div>
-    <div class="roster-modal-field">
-      <div class="k">Role</div>
-      <div class="v" id="modal-role"></div>
-    </div>
-    <div class="roster-modal-field">
-      <div class="k">Details</div>
-      <div class="v" id="modal-meta"></div>
-    </div>
-    <div class="roster-modal-field">
-      <div class="k">K/D Ratio</div>
-      <div class="v" id="modal-kd"></div>
-    </div>
-    <div class="roster-modal-field">
-      <div class="k">Loadout</div>
-      <div class="v" id="modal-loadout"></div>
-    </div>
-    <div class="roster-modal-field" id="modal-socials-row">
-      <div class="k">Socials</div>
-      <div class="v" id="modal-socials" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
-    </div>
-  </div>
-</div>
-
 <script src="js/main.js"></script>
 <script src="js/enhancements.js"></script>
 <script>
@@ -158,47 +124,52 @@
     `<button class="roster-tab${i === 0 ? ' active' : ''}" data-tier="${tier}">${tier}</button>`
   ).join('');
 
-  // ---------- Sections + rows ----------
-  function rowHtml(m) {
+  // ---------- Operator grid cards ----------
+  let opCounter = 0;
+  function cardHtml(m, isFirstOfAll) {
+    opCounter += 1;
     const initials = m.initials || getInitials(m.name);
-    const avatarHtml = m.avatar_url 
-      ? `<img src="${escapeHtml(m.avatar_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+    const avatarHtml = m.avatar_url
+      ? `<img src="${escapeHtml(m.avatar_url)}" alt="">`
       : escapeHtml(initials);
 
     return `
-      <div class="roster-row">
-        <div class="roster-row-avatar" style="overflow:hidden;">${avatarHtml}</div>
-        <div class="roster-row-body">
-          <div class="name-line">
-            ${escapeHtml(m.name)}
-            <span class="role-pill">${escapeHtml(m.role || 'Member')}</span>
-          </div>
-          <div class="meta-line">${escapeHtml(m.meta || '')}</div>
-        </div>
-        <button class="btn btn-ghost view-profile-btn"
-          data-name="${escapeHtml(m.name)}"
-          data-tier="${escapeHtml(m.tier || 'Member')}"
-          data-role="${escapeHtml(m.role || '')}"
-          data-meta="${escapeHtml(m.meta || '')}"
-          data-initials="${escapeHtml(initials)}"
-          data-avatar="${escapeHtml(m.avatar_url || '')}"
-          data-kd="${escapeHtml(m.kd != null ? Number(m.kd).toFixed(2) : '')}"
-          data-loadout="${escapeHtml(m.loadout || '')}"
-          data-twitch="${escapeHtml(m.twitch || '')}"
-          data-youtube="${escapeHtml(m.youtube || '')}"
-          data-x="${escapeHtml(m.x_handle || '')}">
-          View Profile
-        </button>
+      <div class="operator-card${isFirstOfAll ? ' active' : ''}"
+        data-id="${escapeHtml(String(m.id))}"
+        data-name="${escapeHtml(m.name)}"
+        data-tier="${escapeHtml(m.tier || 'Member')}"
+        data-role="${escapeHtml(m.role || '')}"
+        data-meta="${escapeHtml(m.meta || '')}"
+        data-initials="${escapeHtml(initials)}"
+        data-avatar="${escapeHtml(m.avatar_url || '')}"
+        data-kd="${escapeHtml(m.kd != null ? Number(m.kd).toFixed(2) : '')}"
+        data-loadout="${escapeHtml(m.loadout || '')}"
+        data-twitch="${escapeHtml(m.twitch || '')}"
+        data-youtube="${escapeHtml(m.youtube || '')}"
+        data-x="${escapeHtml(m.x_handle || '')}"
+        role="button" tabindex="0">
+        <div class="op-index">${String(opCounter).padStart(2, '0')}</div>
+        <div class="op-avatar">${avatarHtml}</div>
+        <div class="op-name">${escapeHtml(m.name)}</div>
+        <div class="op-role">${escapeHtml(m.role || m.tier || 'Member')}</div>
       </div>
     `;
   }
 
-  const sectionsHtml = activeTiers.map((tier) => `
-    <div class="roster-section" id="section-${tier}">
-      <div class="roster-section-title">${tier}</div>
-      <div class="roster-rows">${groups[tier].map(rowHtml).join('')}</div>
-    </div>
-  `).join('');
+  let firstAssigned = false;
+  const sectionsHtml = activeTiers.map((tier) => {
+    const cards = groups[tier].map((m) => {
+      const isFirst = !firstAssigned;
+      if (isFirst) firstAssigned = true;
+      return cardHtml(m, isFirst);
+    }).join('');
+    return `
+      <div class="roster-section" id="section-${tier}">
+        <div class="roster-section-title">${tier}</div>
+        <div class="operator-grid">${cards}</div>
+      </div>
+    `;
+  }).join('');
 
   shell.innerHTML = `
     <aside class="roster-sidebar">
@@ -218,9 +189,59 @@
         <p class="sub">Displaying ${total} active member${total === 1 ? '' : 's'}</p>
       </div>
       <nav class="roster-tabs" id="roster-tabs">${tabsHtml}</nav>
+      <div class="operator-detail" id="operator-detail"></div>
       ${sectionsHtml}
     </main>
   `;
+
+  // ---------- Detail panel rendering ----------
+  const detailEl = document.getElementById('operator-detail');
+
+  function renderDetail(card) {
+    const avatarHtml = card.dataset.avatar
+      ? `<img src="${escapeHtml(card.dataset.avatar)}" alt="">`
+      : escapeHtml(card.dataset.initials);
+
+    const links = [];
+    if (card.dataset.twitch) links.push(`<a href="https://twitch.tv/${encodeURIComponent(card.dataset.twitch)}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:6px 12px;font-size:0.72rem;">Twitch</a>`);
+    if (card.dataset.youtube) links.push(`<a href="${card.dataset.youtube.startsWith('http') ? card.dataset.youtube : 'https://youtube.com/' + card.dataset.youtube}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:6px 12px;font-size:0.72rem;">YouTube</a>`);
+    if (card.dataset.x) links.push(`<a href="https://x.com/${encodeURIComponent(card.dataset.x)}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:6px 12px;font-size:0.72rem;">X</a>`);
+
+    detailEl.innerHTML = `
+      <div class="op-detail-avatar">${avatarHtml}</div>
+      <div>
+        <span class="op-detail-tier">${card.dataset.tier || 'Member'}</span>
+        <h2>${card.dataset.name}</h2>
+        <div class="op-detail-role">${card.dataset.role || '—'}</div>
+        <div class="op-detail-fields">
+          <div class="op-detail-field"><div class="k">K/D Ratio</div><div class="v">${card.dataset.kd || '—'}</div></div>
+          <div class="op-detail-field"><div class="k">Loadout</div><div class="v">${card.dataset.loadout || '—'}</div></div>
+          <div class="op-detail-field"><div class="k">Details</div><div class="v">${card.dataset.meta || '—'}</div></div>
+        </div>
+        ${links.length ? `<div class="op-detail-socials">${links.join('')}</div>` : ''}
+      </div>
+    `;
+  }
+
+  function selectCard(card) {
+    document.querySelectorAll('.operator-card').forEach((c) => c.classList.remove('active'));
+    card.classList.add('active');
+    renderDetail(card);
+    detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.querySelectorAll('.operator-card').forEach((card) => {
+    card.addEventListener('click', () => selectCard(card));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectCard(card);
+      }
+    });
+  });
+
+  const initialCard = document.querySelector('.operator-card.active') || document.querySelector('.operator-card');
+  if (initialCard) renderDetail(initialCard);
 
   // ---------- Tab click = scroll to section, tally click = same ----------
   function setActiveTier(tier) {
@@ -265,44 +286,6 @@
     }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
     sectionEls.forEach((el) => observer.observe(el));
   }
-
-  // ---------- Profile modal ----------
-  const overlay = document.getElementById('roster-modal-overlay');
-  const modalClose = document.getElementById('roster-modal-close');
-
-  document.querySelectorAll('.view-profile-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const modalAvatar = document.getElementById('modal-avatar');
-      if (btn.dataset.avatar) {
-        modalAvatar.innerHTML = `<img src="${escapeHtml(btn.dataset.avatar)}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
-      } else {
-        modalAvatar.textContent = btn.dataset.initials;
-      }
-
-      document.getElementById('modal-name').textContent = btn.dataset.name;
-      document.getElementById('modal-tier').textContent = btn.dataset.tier;
-      document.getElementById('modal-role').textContent = btn.dataset.role || '—';
-      document.getElementById('modal-meta').textContent = btn.dataset.meta || '—';
-      document.getElementById('modal-kd').textContent = btn.dataset.kd || '—';
-      document.getElementById('modal-loadout').textContent = btn.dataset.loadout || '—';
-
-      const links = [];
-      if (btn.dataset.twitch) links.push(`<a href="https://twitch.tv/${encodeURIComponent(btn.dataset.twitch)}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem;">Twitch</a>`);
-      if (btn.dataset.youtube) links.push(`<a href="${btn.dataset.youtube.startsWith('http') ? btn.dataset.youtube : 'https://youtube.com/' + btn.dataset.youtube}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem;">YouTube</a>`);
-      if (btn.dataset.x) links.push(`<a href="https://x.com/${encodeURIComponent(btn.dataset.x)}" target="_blank" rel="noopener" class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem;">X</a>`);
-      
-      const socialsRow = document.getElementById('modal-socials-row');
-      document.getElementById('modal-socials').innerHTML = links.join(' ') || '—';
-      socialsRow.style.display = links.length ? '' : 'none';
-
-      overlay.classList.add('open');
-    });
-  });
-
-  function closeModal() { overlay.classList.remove('open'); }
-  modalClose.addEventListener('click', closeModal);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 })();
 </script>
 </body>
