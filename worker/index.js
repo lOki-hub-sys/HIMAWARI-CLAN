@@ -23,11 +23,7 @@ function badRequest(message) {
 // Simple table config: table name -> required fields for a create/update
 const TABLES = {
   roster: {
-<<<<<<< Updated upstream
-           columns: ['id', 'initials', 'name', 'role', 'meta', 'tier', 'kd', 'loadout', 'twitch', 'youtube', 'x_handle', 'avatar_url'],
-=======
-    columns: ['id', 'initials', 'name', 'role', 'meta', 'tier'],
->>>>>>> Stashed changes
+    columns: ['id', 'initials', 'name', 'role', 'meta', 'tier', 'kd', 'loadout', 'twitch', 'youtube', 'x_handle', 'avatar_url'],
     order: 'sort_order ASC, rowid ASC',
   },
   announcements: {
@@ -38,7 +34,7 @@ const TABLES = {
     columns: ['id', 'name', 'date', 'format', 'status'],
     order: 'rowid DESC',
   },
-    applicants: {
+  applicants: {
     columns: ['id', 'ign', 'rank', 'discord', 'notes', 'date'],
     order: 'rowid DESC',
   },

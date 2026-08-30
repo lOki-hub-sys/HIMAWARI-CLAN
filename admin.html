@@ -64,7 +64,6 @@
     <!-- ---------- Announcements ---------- -->
     <div class="admin-panel active" id="panel-announcements">
       <div class="grid grid-2">
-<<<<<<< Updated upstream
         <form class="card reveal" id="announce-form">
           <h3 style="font-size:1.1rem;margin-bottom:16px;">New announcement</h3>
           <input type="hidden" id="announce-id" value="">
@@ -88,65 +87,6 @@
         <div class="reveal">
           <h3 style="font-size:1.1rem;margin-bottom:16px;">Published</h3>
           <div id="announce-list"></div>
-=======
-        <div class="field"><label for="announce-title">Title</label><input id="announce-title" required></div>
-        <div class="field"><label for="announce-date">Date</label><input id="announce-date" type="date" required></div>
-      </div>
-      <div class="field"><label for="announce-body">Body</label><textarea id="announce-body" required></textarea></div>
-      <button type="submit" class="btn btn-primary">Save announcement</button>
-      <button type="button" id="announce-cancel" class="btn btn-ghost" style="display:none;">Cancel edit</button>
-    </form>
-    <div id="announce-list"></div>
-  </div>
-
-  <!-- Roster -->
-  <div class="admin-panel" id="panel-roster">
-    <form id="roster-form" class="card" style="margin-bottom:28px;">
-      <input type="hidden" id="roster-id">
-      <div class="grid grid-2">
-        <div class="field"><label for="roster-initials">Avatar initials</label><input id="roster-initials" maxlength="3" placeholder="e.g. SK" required></div>
-        <div class="field"><label for="roster-name">Name</label><input id="roster-name" placeholder="e.g. Skyline" required></div>
-        <div class="field">
-          <label for="roster-tier">Clan rank</label>
-          <select id="roster-tier" required>
-            <option value="Leadership">Leadership</option>
-            <option value="Admin">Admin</option>
-            <option value="Officer">Officer</option>
-            <option value="Member" selected>Member</option>
-          </select>
-        </div>
-        <div class="field"><label for="roster-role">Role</label><input id="roster-role" placeholder="e.g. In-game leader" required></div>
-        <div class="field" style="grid-column:1 / -1;"><label for="roster-meta">Meta line</label><input id="roster-meta" placeholder="e.g. Joined 2021 · Hardpoint / SnD caller" required></div>
-      </div>
-      <button type="submit" class="btn btn-primary">Save member</button>
-      <button type="button" id="roster-cancel" class="btn btn-ghost" style="display:none;">Cancel edit</button>
-    </form>
-    <div id="roster-list"></div>
-  </div>
-
-  <!-- Applicants -->
-  <div class="admin-panel" id="panel-applicants">
-    <p style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-dim);margin-bottom:20px;">
-      Applications submitted through the public Join page land here. Visible to admins only.
-    </p>
-    <div id="applicant-list"></div>
-  </div>
-
-  <!-- Tournaments -->
-  <div class="admin-panel" id="panel-tournaments">
-    <form id="tourney-form" class="card" style="margin-bottom:28px;">
-      <input type="hidden" id="tourney-id">
-      <div class="grid grid-2">
-        <div class="field"><label for="tourney-name">Name</label><input id="tourney-name" required></div>
-        <div class="field"><label for="tourney-date">Date</label><input id="tourney-date" type="date" required></div>
-        <div class="field">
-          <label for="tourney-format">Format</label>
-          <select id="tourney-format">
-            <option>Single elimination</option>
-            <option>Double elimination</option>
-            <option>Round robin</option>
-          </select>
->>>>>>> Stashed changes
         </div>
       </div>
     </div>
