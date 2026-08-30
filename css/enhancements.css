@@ -1,0 +1,154 @@
+/* ============================================================
+   HIMAWARI — enhancements
+   Purely additive. Nothing here overrides or duplicates a rule
+   from style.css; it only adds new classes/elements. Safe to
+   link after style.css on every page.
+   ============================================================ */
+
+/* ---------- Boot sequence (home page, once per session) ---------- */
+.boot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: var(--bg-deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  transition: opacity 480ms var(--ease-out), visibility 0ms linear 480ms;
+}
+.boot-overlay.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.boot-mark {
+  width: 40px;
+  height: 40px;
+  background: var(--gold);
+  box-shadow: 0 0 18px 2px rgba(255, 176, 32, 0.5);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  opacity: 0;
+  animation: boot-mark-in 640ms var(--ease-snap) 120ms forwards;
+}
+@keyframes boot-mark-in {
+  from { opacity: 0; transform: scale(0.4) rotate(-25deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.boot-lines {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+  min-height: 1.4em;
+}
+.boot-line {
+  opacity: 0;
+  animation: boot-line-in 260ms var(--ease-out) forwards;
+}
+@keyframes boot-line-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.boot-bar-track {
+  width: 220px;
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+.boot-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+  animation: boot-bar 1300ms var(--ease-snap) 160ms forwards;
+}
+@keyframes boot-bar { to { width: 100%; } }
+
+/* ---------- Hero cursor-reactive glow ---------- */
+.hero-cursor-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(
+    320px circle at var(--mx, 50%) var(--my, 15%),
+    rgba(255, 176, 32, 0.12),
+    transparent 70%
+  );
+}
+
+/* ---------- Accent underline sweep on hero heading ---------- */
+.hero h1 .accent { position: relative; }
+.hero h1 .accent::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 2px;
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: accent-underline 460ms var(--ease-snap) 1050ms forwards;
+}
+@keyframes accent-underline { to { transform: scaleX(1); } }
+
+/* ---------- Scramble-reveal targets ---------- */
+.scramble-target { font-variant-numeric: tabular-nums; }
+
+/* ---------- Card Tilt & Magnetic Base Styling ---------- */
+.stat-card, .roster-card, .news-card, .feature-card, .gallery-item {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.15s ease-out;
+}
+
+/* ---------- Admin tab-switch flicker ---------- */
+.tab-flicker { animation: tab-flicker-kf 220ms steps(6); }
+@keyframes tab-flicker-kf {
+  0%, 100% { opacity: 1; }
+  10%, 30%, 50%, 70%, 90% { opacity: 0.4; }
+  20%, 40%, 60%, 80% { opacity: 0.85; }
+}
+
+/* ---------- Optional loading skeleton shimmer ---------- */
+.skeleton-line {
+  height: 14px;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, var(--panel) 25%, var(--panel-alt) 50%, var(--panel) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 6px 100%);
+}
+@keyframes skeleton-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ---------- Tactical scrollbar ---------- */
+html { scrollbar-color: var(--panel-alt) var(--bg-deep); scrollbar-width: thin; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--panel-alt); border: 1px solid var(--line); }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+/* ---------- Keyboard focus for the rank-tally sidebar item ---------- */
+.rank-tally-item:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-overlay, .boot-mark, .boot-line, .boot-bar-fill,
+  .hero h1 .accent::after, .tab-flicker, .skeleton-line {
+    animation: none !important;
+  }
+  .hero h1 .accent::after { transform: scaleX(1); }
+  .stat-card, .roster-card, .news-card, .feature-card, .gallery-item, .btn {
+    transform: none !important;
+  }
+}
