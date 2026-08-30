@@ -36,27 +36,6 @@
   <span>Managed via the clan admin panel</span>
 </footer>
 
-<!-- Profile modal -->
-<div class="roster-modal-overlay" id="roster-modal-overlay">
-  <div class="roster-modal">
-    <button class="roster-modal-close" id="roster-modal-close" aria-label="Close">✕</button>
-    <div class="roster-row-avatar" id="modal-avatar"></div>
-    <h3 id="modal-name"></h3>
-    <div class="roster-modal-field">
-      <div class="k">Clan rank</div>
-      <div class="v" id="modal-tier"></div>
-    </div>
-    <div class="roster-modal-field">
-      <div class="k">Role</div>
-      <div class="v" id="modal-role"></div>
-    </div>
-    <div class="roster-modal-field">
-      <div class="k">Details</div>
-      <div class="v" id="modal-meta"></div>
-    </div>
-  </div>
-</div>
-
 <script src="js/main.js"></script>
 <script src="js/enhancements.js"></script>
 <script>
@@ -173,6 +152,7 @@
         <div class="op-avatar">${avatarHtml}</div>
         <div class="op-name">${escapeHtml(m.name)}</div>
         <div class="op-role">${escapeHtml(m.role || m.tier || 'Member')}</div>
+        ${m.kd != null ? `<div class="op-kd"><span class="k">K/D</span><span class="v">${escapeHtml(Number(m.kd).toFixed(2))}</span></div>` : ''}
       </div>
     `;
   }
@@ -206,8 +186,11 @@
     </aside>
     <main class="roster-main">
       <div class="roster-main-head">
-        <h1>Roster <span class="accent">/ Himawari Clan</span></h1>
-        <p class="sub">Displaying ${total} active member${total === 1 ? '' : 's'}</p>
+        <div>
+          <h1>Roster <span class="accent">/ Himawari Clan</span></h1>
+          <p class="sub">Displaying ${total} active member${total === 1 ? '' : 's'}</p>
+        </div>
+        <a href="join.html" class="btn btn-primary roster-apply-btn">Apply to join</a>
       </div>
       <nav class="roster-tabs" id="roster-tabs">${tabsHtml}</nav>
       <div class="operator-detail" id="operator-detail"></div>
