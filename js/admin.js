@@ -1,16 +1,10 @@
 /* ============================================================
    HIMAWARI CLAN — Admin Control Room Script (admin.js)
    Handles demo authentication, tab navigation, applicant management,
-   announcements, roster updates, tournaments, and bracket generation.
+   announcements, roster updates, tournaments, and bracket image uploads.
 
-   Data for announcements / roster / tournaments / applicants is now
-   read from and written to the live D1-backed API (/api/<table>),
-   not localStorage. Login and the bracket generator remain purely
-   client-side, unchanged.
-
-   CHANGE FROM PREVIOUS VERSION: the roster module now reads/writes a
-   `tier` field (Leadership / Admin / Officer / Member) alongside the
-   existing free-text `role`. Everything else is unchanged.
+   Data for announcements / roster / tournaments / applicants / bracket is
+   read from and written to the live D1-backed API (/api/<table>).
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -120,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRoster();
     renderApplicants();
     renderTournaments();
+    renderBracketPreview();
   }
 
   // --- 1. Announcements Module ---
@@ -498,112 +493,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // --- 5. Bracket Generator Module ---
-  const bracketTeamsInput = document.getElementById('bracket-teams');
-  const bracketFormatSelect = document.getElementById('bracket-format');
-  const bracketGenerateBtn = document.getElementById('bracket-generate');
-  const bracketNote = document.getElementById('bracket-note');
-  const bracketOutput = document.getElementById('bracket-output');
+  // --- 5. Bracket Image Upload Module ---
+  const bracketForm = document.getElementById('bracket-upload-form');
+  const bracketPreview = document.getElementById('bracket-preview');
 
-  bracketGenerateBtn.addEventListener('click', () => {
-    const raw = bracketTeamsInput.value.trim();
-    if (!raw) {
-      bracketNote.textContent = 'Please enter at least two team names.';
-      bracketOutput.innerHTML = '';
-      return;
-    }
-
-    const teams = raw.split('\n').map((t) => t.trim()).filter((t) => t.length > 0);
-    if (teams.length < 2) {
-      bracketNote.textContent = 'At least 2 teams are required to generate a bracket.';
-      bracketOutput.innerHTML = '';
-      return;
-    }
-
-    let selectedFormat = bracketFormatSelect.value;
-    if (selectedFormat === 'auto') {
-      if (teams.length <= 4) selectedFormat = 'single';
-      else if (teams.length <= 8) selectedFormat = 'double';
-      else selectedFormat = 'single';
-    }
-
-    bracketNote.textContent = `Generated ${teams.length}-team bracket (${selectedFormat} format).`;
-
-    if (selectedFormat === 'round-robin') {
-      renderRoundRobin(teams);
-    } else {
-      renderKnockoutBracket(teams, selectedFormat);
-    }
-  });
-
-  function renderKnockoutBracket(teams, format) {
-    const size = Math.pow(2, Math.ceil(Math.log2(teams.length)));
-    const paddedTeams = [...teams];
-    while (paddedTeams.length < size) {
-      paddedTeams.push('BYE');
-    }
-
-    const totalRounds = Math.log2(size);
-    let html = `<div style="overflow-x:auto;padding-bottom:16px;"><div style="display:flex;gap:24px;min-width:600px;">`;
-
-    let currentMatches = [];
-    for (let i = 0; i < size; i += 2) {
-      currentMatches.push([paddedTeams[i], paddedTeams[i + 1]]);
-    }
-
-    for (let r = 1; r <= totalRounds; r++) {
-      const roundName = r === totalRounds ? 'Finals' : r === totalRounds - 1 ? 'Semifinals' : `Round ${r}`;
-      html += `
-        <div style="flex:1;display:flex;flex-direction:column;justify-content:space-around;">
-          <h4 style="font-family:var(--font-mono);font-size:0.8rem;color:var(--gold);margin-bottom:12px;text-transform:uppercase;">${roundName}</h4>
-      `;
-
-      currentMatches.forEach((m, idx) => {
-        html += `
-          <div class="card" style="padding:10px 14px;margin-bottom:12px;background:var(--panel-alt);">
-            <div style="font-family:var(--font-mono);font-size:0.82rem;display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:4px;">
-              <span>${escapeHtml(m[0])}</span>
-              <span style="color:var(--text-dim);">#${idx * 2 + 1}</span>
-            </div>
-            <div style="font-family:var(--font-mono);font-size:0.82rem;display:flex;justify-content:space-between;">
-              <span>${escapeHtml(m[1])}</span>
-              <span style="color:var(--text-dim);">#${idx * 2 + 2}</span>
-            </div>
-          </div>
+  async function renderBracketPreview() {
+    if (!bracketPreview) return;
+    try {
+      const data = await apiList('bracket');
+      const item = Array.isArray(data) ? data[0] : data;
+      if (item && item.image_url) {
+        bracketPreview.innerHTML = `
+          <h4 style="font-family:var(--font-display);font-size:1.1rem;margin-bottom:12px;color:var(--gold);">${escapeHtml(item.title || 'Tournament Bracket')}</h4>
+          <img src="${escapeHtml(item.image_url)}" alt="Bracket Image" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--line);">
         `;
-      });
-
-      html += `</div>`;
-
-      const nextCount = currentMatches.length / 2;
-      currentMatches = [];
-      for (let k = 0; k < nextCount; k++) {
-        currentMatches.push([`TBD (Winner M${k * 2 + 1})`, `TBD (Winner M${k * 2 + 2})`]);
+      } else {
+        bracketPreview.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No bracket image uploaded yet.</p>';
       }
+    } catch (e) {
+      console.error('Bracket preview error:', e);
+      bracketPreview.innerHTML = '<p style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.85rem;">No bracket image uploaded yet.</p>';
     }
-
-    html += `</div></div>`;
-    bracketOutput.innerHTML = html;
   }
 
-  function renderRoundRobin(teams) {
-    let html = '<div class="grid grid-2">';
-    let matchCount = 0;
+  if (bracketForm) {
+    bracketForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const note = document.getElementById('bracket-upload-note');
+      const noteText = document.getElementById('bracket-upload-note-text');
+      const titleInput = document.getElementById('bracket-title-input');
+      const fileInput = document.getElementById('bracket-image-input');
 
-    for (let i = 0; i < teams.length; i++) {
-      for (let j = i + 1; j < teams.length; j++) {
-        matchCount++;
-        html += `
-          <div class="card" style="padding:12px 16px;background:var(--panel-alt);">
-            <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--gold);margin-bottom:4px;">MATCH ${matchCount}</div>
-            <div style="font-weight:600;font-size:0.95rem;">${escapeHtml(teams[i])} <span style="color:var(--ember);margin:0 6px;">VS</span> ${escapeHtml(teams[j])}</div>
-          </div>
-        `;
+      if (!fileInput.files.length) return;
+
+      try {
+        const imageBase64 = await fileToBase64(fileInput.files[0]);
+        const payload = {
+          id: 'current-bracket',
+          title: titleInput.value.trim(),
+          image_url: imageBase64,
+          updated_at: new Date().toISOString()
+        };
+
+        await apiSave('bracket', payload);
+
+        note.className = 'status-chip success visible';
+        noteText.textContent = 'Bracket image updated successfully!';
+
+        renderBracketPreview();
+      } catch (err) {
+        console.error('Bracket upload failed:', err);
+        note.className = 'status-chip error visible';
+        noteText.textContent = 'Failed to upload bracket image. Please try again.';
       }
-    }
-
-    html += '</div>';
-    bracketOutput.innerHTML = html;
+    });
   }
 
   function escapeHtml(str) {
